@@ -214,7 +214,7 @@ To decline, close the issue or pull request with a short, kind note, for example
 The site has not been deployed yet. To go live:
 
 1. **Create the GitHub repository** given in `config/site.json` (currently
-   `jstoobysmith/PhyslibContributors`) and push this code. If you use a
+   `jstoobysmith/formal-contributions`) and push this code. If you use a
    different owner or name, also update `siteUrl` and `basePath`.
 2. **Enable Pages:** Settings → Pages → Source: *GitHub Actions*.
 3. **Create the `signing` environment** (Settings → Environments), restrict
@@ -222,7 +222,7 @@ The site has not been deployed yet. To go live:
    (`key-1`) has already been generated; its secret half is in the
    git-ignored `.keys/key-1.json`:
    ```bash
-   gh secret set OB_SIGNING_KEY --env signing --repo jstoobysmith/PhyslibContributors < .keys/key-1.json
+   gh secret set OB_SIGNING_KEY --env signing --repo jstoobysmith/formal-contributions < .keys/key-1.json
    rm .keys/key-1.json   # once the secret is stored
    ```
 4. **Protect `main`** with a ruleset: require pull requests with review from
