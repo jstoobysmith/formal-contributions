@@ -1,5 +1,6 @@
-# Runs on every push to main, which is how accepted submissions arrive (a
-# maintainer merges the submission pull request). It then:
+# Runs on every push to main, which is how accepted submissions arrive (the
+# "Submission issue" workflow commits one when a maintainer accepts its issue,
+# or a maintainer merges a submission pull request). It then:
 #   1. signs every accepted submission that has no credential yet, provided
 #      enough maintainers approved it (scripts/sign.ts),
 #   2. commits the signed Open Badges 3.0 credentials and report numbers to main,
