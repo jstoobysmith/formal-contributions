@@ -3,7 +3,7 @@ import { ACCEPT_COMMAND } from '../lib/issue-submission';
 import { Content } from '../components/Content';
 import { Container, PageTitle } from '../components/ui';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
-import { ISSUER_DID, MAINTAINERS, SECTIONS, SIGNING_KEY, SITE, SITE_URL, urls } from '../lib/config';
+import { DNS_DOMAIN, ISSUER_DID, MAINTAINERS, SECTIONS, SIGNING_KEY, SITE, SITE_URL, urls } from '../lib/config';
 import { PREFILL_PARAMETERS, prefillParams } from '../lib/prefill';
 import { asset } from '../site/data';
 import { useTitle } from '../site/useTitle';
@@ -181,13 +181,13 @@ export default function About() {
             {SIGNING_KEY?.status === 'temporary' ? (
               <>
                 Reports are currently signed with a temporary key while the site is being set up. The permanent key will be
-                published in the DNS of physlib.io (at <code className="font-mono text-sm">{SITE.dns.txtName}</code>), which ties
-                it to the Physlib project independently of this website.
+                published in the DNS of {DNS_DOMAIN} (at <code className="font-mono text-sm">{SITE.dns.txtName}</code>), which ties
+                it to the domain independently of where the site is hosted.
               </>
             ) : (
               <>
-                The key is also published in the DNS of physlib.io (at <code className="font-mono text-sm">{SITE.dns.txtName}</code>
-                ), which ties it to the Physlib project independently of this website.
+                The key is also published in the DNS of {DNS_DOMAIN} (at <code className="font-mono text-sm">{SITE.dns.txtName}</code>
+                ), which ties it to the domain independently of where the site is hosted.
               </>
             )}{' '}
             When a key is replaced, existing reports are signed again with

@@ -73,6 +73,10 @@ export interface Maintainer {
 }
 
 export const SITE = site;
+
+/** The domain whose DNS publishes the signing key, e.g. "formalcontributions.com". */
+export const DNS_DOMAIN = site.dns.txtName.replace(/^_[^.]+\./, '');
+
 /** Every section, including the test section. */
 export const ALL_SECTIONS = sectionsJson as Section[];
 /** The sections of real reports, as listed on the site. */
