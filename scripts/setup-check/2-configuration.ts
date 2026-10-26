@@ -1,11 +1,11 @@
 /**
- * Part 2: the hand-edited files in config/ (site, sections, maintainers,
- * revocations) and .github/CODEOWNERS.
+ * Part 2: the hand-edited files in config/ (site, sections, projects and
+ * their verifiers, revocations) and .github/CODEOWNERS.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ALL_SECTIONS, EVIDENCE_KINDS, ISSUER_DID, MAINTAINERS, SECTION_IDS, SITE, SITE_URL, type Revocation } from '../../src/lib/config';
+import { ALL_SECTIONS, DEFAULT_PROJECT, EVIDENCE_KINDS, ISSUER_DID, PROJECTS, SECTION_IDS, SITE, SITE_URL, VERIFIERS, type Revocation } from '../../src/lib/config';
 import { CONTENT_FILES, missingHeader, unknownPlaceholders } from '../../src/lib/content';
 import { readJson, ROOT } from '../lib/files';
 import { definePart, fail, listing, pass, plural, skip, warn } from './checks';
@@ -61,50 +61,65 @@ export default definePart({
         : pass(`${ALL_SECTIONS.map((s) => `${s.numeral}. ${s.name}`).join(', ')}; each has criteria, examples and a badge.`);
     });
 
-    await check('2.4', 'Maintainers', () => {
+    await check('2.4', 'Projects and verifiers', () => {
       const required = SITE.review.requiredApprovals;
-      const names = MAINTAINERS.map((m) => m.github);
-      if (MAINTAINERS.length < required) {
+      const problems: string[] = [];
+      const ids = PROJECTS.map((p) => p.id);
+      if (!PROJECTS.length) problems.push('config/projects.json lists no projects');
+      if (new Set(ids).size !== ids.length) problems.push('two projects have the same id');
+      for (const p of PROJECTS) {
+        if (!/^[a-z0-9-]+$/.test(p.id)) problems.push(`the id "${p.id}" may only use a-z, 0-9 and -`);
+        if (!p.name || !p.description || !p.url || !/^[\w.-]+\/[\w.-]+$/.test(p.repository ?? '')) problems.push(`${p.id} needs a name, description, url and repository ("owner/name")`);
+      }
+      if (SITE.defaultProject !== DEFAULT_PROJECT.id) problems.push(`defaultProject in config/site.json is "${SITE.defaultProject}", which is not a project`);
+      if (problems.length) return fail(`${problems.join('; ')}.`, 'Fix config/projects.json (README: Part 1, Project).');
+      const acceptable = PROJECTS.filter((p) => p.verifiers.length >= required);
+      if (!acceptable.length) {
         return fail(
-          `${plural(MAINTAINERS.length, 'maintainer')} listed, but each report needs ${required} approvals: nothing can be signed.`,
-          'Add maintainers to config/maintainers.json, or lower review.requiredApprovals in config/site.json.',
+          `No project has ${required} verifier(s), so no submission can be accepted.`,
+          'Add verifiers to config/projects.json, or lower review.requiredApprovals in config/site.json.',
         );
       }
-      const noId = MAINTAINERS.filter((m) => m.id === undefined).map((m) => m.github);
-      if (MAINTAINERS.length < required + 1) {
-        return warn(
-          `Only ${listing(names.map((n) => `@${n}`))} can approve. Reports on ${MAINTAINERS.length === 1 ? 'that maintainer’s' : 'a maintainer’s'} own work can never get ${required} independent approval(s).`,
-          `List at least ${required + 1} maintainers in config/maintainers.json before launch (README: Before launch).`,
-        );
-      }
-      if (noId.length) return warn(`${listing(noId)} ha${noId.length === 1 ? 's' : 've'} no numeric GitHub id.`, 'Add "id" (from https://api.github.com/users/<login>) so a renamed account cannot take over.');
-      return pass(`${listing(names.map((n) => `@${n}`))}; ${plural(required, 'approval')} needed per report.`);
+      const notes: string[] = [];
+      const short = PROJECTS.filter((p) => p.verifiers.length < required);
+      if (short.length) notes.push(`${listing(short.map((p) => p.name))} ha${short.length === 1 ? 's' : 've'} fewer than ${required} verifier(s), so submissions for ${short.length === 1 ? 'it' : 'them'} cannot be accepted`);
+      const thin = acceptable.filter((p) => p.verifiers.length < required + 1);
+      if (thin.length) notes.push(`in ${listing(thin.map((p) => p.name))}, reports on a verifier’s own work can never get ${required} independent approval(s)`);
+      const noId = VERIFIERS.filter((v) => v.id === undefined).map((v) => v.github);
+      if (noId.length) notes.push(`${listing(noId)} ha${noId.length === 1 ? 's' : 've'} no numeric GitHub id`);
+      const each = PROJECTS.map((p) => `${p.name}: ${p.verifiers.length ? listing(p.verifiers.map((v) => `@${v.github}`)) : 'none'}`).join('; ');
+      return notes.length
+        ? warn(
+            `${each}. ${notes.join('; ').replace(/^./, (c) => c.toUpperCase())}.`,
+            `List at least ${required + 1} verifiers for each project in config/projects.json before launch, each with "id" (from https://api.github.com/users/<login>) (README: Before launch).`,
+          )
+        : pass(`${each}; ${plural(required, 'approval')} needed per report.`);
     });
 
-    await check('2.5', 'Maintainer accounts', async () => {
+    await check('2.5', 'Verifier accounts', async () => {
       const problems: string[] = [];
-      for (const m of MAINTAINERS) {
+      for (const m of VERIFIERS) {
         const { status, data } = await github<{ id: number; login: string }>(`/users/${encodeURIComponent(m.github)}`);
         if (status === 404) problems.push(`@${m.github} does not exist on GitHub`);
         else if (!data) return skip(`Could not reach the GitHub API (HTTP ${status}).`);
         else if (m.id !== undefined && data.id !== m.id) problems.push(`@${m.github} has id ${data.id}, not ${m.id} as listed`);
       }
       return problems.length
-        ? fail(`${problems.join('; ')}.`, 'Correct config/maintainers.json.')
-        : pass(`Every listed maintainer is a GitHub account${MAINTAINERS.some((m) => m.id !== undefined) ? ' with the listed id' : ''}.`);
+        ? fail(`${problems.join('; ')}.`, 'Correct config/projects.json.')
+        : pass(`Every listed verifier is a GitHub account${VERIFIERS.some((m) => m.id !== undefined) ? ' with the listed id' : ''}.`);
     });
 
     await check('2.6', 'Code owners', () => {
       const path = join(ROOT, '.github', 'CODEOWNERS');
-      if (!existsSync(path)) return fail('.github/CODEOWNERS is missing, so changes to the signing code need no maintainer review.', 'Restore .github/CODEOWNERS.');
+      if (!existsSync(path)) return fail('.github/CODEOWNERS is missing, so changes to the signing code need no review from its owners.', 'Restore .github/CODEOWNERS.');
       const rules = readFileSync(path, 'utf8').split('\n').filter((l) => l.trim() && !l.trim().startsWith('#'));
       const covered = rules.map((l) => l.trim().split(/\s+/)[0]);
       const needed = ['/.github/', '/scripts/', '/src/lib/', '/config/'].filter((p) => !covered.includes(p));
       if (needed.length) return fail(`CODEOWNERS does not cover ${listing(needed)}.`, 'Add those paths to .github/CODEOWNERS.');
       const owners = [...new Set(rules.flatMap((l) => l.trim().split(/\s+/).slice(1)).map((o) => o.replace(/^@/, '')))];
-      const notMaintainers = owners.filter((o) => !o.includes('/') && !MAINTAINERS.some((m) => m.github.toLowerCase() === o.toLowerCase()));
-      return notMaintainers.length
-        ? warn(`Code owners who are not listed maintainers: ${listing(notMaintainers)}.`, 'Make the code owners and config/maintainers.json agree.')
+      const notVerifiers = owners.filter((o) => !o.includes('/') && !VERIFIERS.some((m) => m.github.toLowerCase() === o.toLowerCase()));
+      return notVerifiers.length
+        ? warn(`Code owners who are not verifiers of any project: ${listing(notVerifiers)}.`, 'Make the code owners and the verifiers in config/projects.json agree.')
         : pass(`The signing code and configuration are owned by ${listing(owners.map((o) => `@${o}`))}.`);
     });
 

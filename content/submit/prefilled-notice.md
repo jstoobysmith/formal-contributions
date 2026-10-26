@@ -7,5 +7,5 @@ purpose: >
   nothing has been sent yet. Starts with a sentence in bold.
 ---
 
-**This form was filled in from the link you opened.** Check every field, add anything missing, and send it in step 5.
+**This form was filled in from the link you opened.** Check every field, add anything missing, and send it in step 6.
 Nothing has been sent yet.

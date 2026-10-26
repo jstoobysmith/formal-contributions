@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { isoSeconds, isTestSection, SITE, sectionById, type EvidenceKind, type SectionId } from '../lib/config';
-import { readPrefill, splitEvidenceLinks, type Prefill } from '../lib/prefill';
-import { githubLoginFromInput, guessEvidenceKind, normaliseUrl, pullRequestUrl, submissionSchema, submissionSlug } from '../lib/submission';
+import { DEFAULT_PROJECT, isoSeconds, isTestSection, PROJECTS, sectionById, type EvidenceKind, type SectionId } from '../lib/config';
+import { pullRequestRepository, readPrefill, splitEvidenceLinks, type Prefill } from '../lib/prefill';
+import { githubLoginFromInput, guessEvidenceKind, newSubmissionSchema, normaliseUrl, pullRequestUrl, submissionSlug } from '../lib/submission';
 
 export interface EvidenceDraft {
   url: string;
@@ -19,6 +19,8 @@ export interface PersonDraft {
 
 export interface Draft {
   section: SectionId;
+  /** Project ids, primary first; empty until one is chosen. */
+  projects: string[];
   title: string;
   summary: string;
   name: string;
@@ -30,6 +32,7 @@ export interface Draft {
   evidence: EvidenceDraft[];
 }
 
+// The old name is kept, so drafts saved before the site was renamed are not lost.
 const STORAGE_KEY = 'physlib-contributions:draft';
 
 export const emptyEvidence = (kind: EvidenceKind = 'pull-request'): EvidenceDraft => ({ url: '', kind, title: '', description: '' });
@@ -38,6 +41,8 @@ function blankDraft(section: string | null): Draft {
   const s = sectionById(section ?? '');
   return {
     section: s?.id ?? 'review',
+    // With only one project there is nothing to choose.
+    projects: PROJECTS.length === 1 ? [PROJECTS[0].id] : [],
     title: '',
     summary: '',
     name: '',
@@ -65,9 +70,9 @@ function testContent(): Pick<Draft, 'title' | 'summary' | 'from' | 'to' | 'evide
     to: month(now),
     evidence: [
       {
-        url: `https://github.com/${SITE.physlib.repository}/pulls`,
+        url: `https://github.com/${DEFAULT_PROJECT.repository}/pulls`,
         kind: 'other',
-        title: 'Physlib pull requests (placeholder evidence)',
+        title: `${DEFAULT_PROJECT.name} pull requests (placeholder evidence)`,
         description: 'A real submission links the pull requests, reviews or modules that make up the work.',
         kindChosen: true,
       },
@@ -85,6 +90,7 @@ export function testDraft(d: Draft): Draft {
     ...d,
     ...testContent(),
     section: 'test',
+    projects: d.projects.length ? d.projects : [DEFAULT_PROJECT.id],
     name: d.name.trim() || TEST_NAME,
     collaborators: [],
   };
@@ -114,21 +120,35 @@ export function chooseSection(d: Draft, section: SectionId): Draft {
   return { ...d, section };
 }
 
-/** The kind of evidence a Physlib pull request is in a section: a review in Review, a pull request elsewhere. */
+/** Makes a project the primary one; the project it replaces, if any, is dropped. */
+export function choosePrimaryProject(d: Draft, id: string): Draft {
+  return { ...d, projects: [id, ...d.projects.slice(1).filter((p) => p !== id)] };
+}
+
+/** Adds or removes a secondary project (never the primary one). */
+export function toggleSecondaryProject(d: Draft, id: string): Draft {
+  const [primary, ...also] = d.projects;
+  if (!primary || id === primary) return d;
+  return { ...d, projects: [primary, ...(also.includes(id) ? also.filter((p) => p !== id) : [...also, id])] };
+}
+
+/** The kind of evidence a pull request is in a section: a review in Review, a pull request elsewhere. */
 export const pullRequestKind = (section: SectionId): EvidenceKind =>
   sectionById(section)?.evidenceKinds[0] === 'pull-request-review' ? 'pull-request-review' : 'pull-request';
 
 /** The draft with the fields a link fills in (see src/lib/prefill.ts). */
 function withPrefill(d: Draft, p: Prefill): Draft {
   const section = p.section ?? d.section;
+  const projects = p.projects ?? d.projects;
   const kind = pullRequestKind(section);
   const evidence: EvidenceDraft[] = [
-    ...(p.prs ?? []).map((n) => ({ ...emptyEvidence(kind), url: pullRequestUrl(SITE.physlib.repository, n), kindChosen: true })),
+    ...(p.prs ?? []).map((n) => ({ ...emptyEvidence(kind), url: pullRequestUrl(pullRequestRepository(projects), n), kindChosen: true })),
     ...(p.links ?? []).map((url) => ({ ...emptyEvidence(kind), url, kind: guessEvidenceKind(url, sectionById(section)!.evidenceKinds[0]) })),
   ];
   return {
     ...d,
     section,
+    projects,
     name: p.name ?? d.name,
     github: p.github ?? d.github,
     orcid: p.orcid ?? d.orcid,
@@ -144,6 +164,7 @@ function withPrefill(d: Draft, p: Prefill): Draft {
 export function prefillFromDraft(d: Draft): Prefill {
   return {
     section: d.section,
+    projects: d.projects,
     name: d.name,
     github: githubLoginFromInput(d.github),
     orcid: d.orcid,
@@ -151,7 +172,7 @@ export function prefillFromDraft(d: Draft): Prefill {
     summary: d.summary,
     from: d.from,
     to: d.to,
-    ...splitEvidenceLinks(d.evidence.map((e) => normaliseUrl(e.url))),
+    ...splitEvidenceLinks(d.evidence.map((e) => normaliseUrl(e.url)), pullRequestRepository(d.projects)),
   };
 }
 
@@ -187,6 +208,7 @@ export function toSubmission(d: Draft, submittedAt: string): unknown {
   const collaborators = d.collaborators.filter((c) => c.github.trim() || c.name.trim()).map((c) => ({ github: login(c.github), name: c.name.trim() }));
   return {
     section: d.section,
+    ...(d.projects.length ? { projects: d.projects } : {}),
     title: d.title.trim(),
     summary: d.summary.trim(),
     recipient: { github: login(d.github), name: d.name.trim(), orcid: opt(d.orcid) },
@@ -215,7 +237,7 @@ export function useSubmissionDraft(params: URLSearchParams) {
     }
   }, [draft]);
 
-  const parsed = useMemo(() => submissionSchema.safeParse(toSubmission(draft, submittedAt)), [draft, submittedAt]);
+  const parsed = useMemo(() => newSubmissionSchema.safeParse(toSubmission(draft, submittedAt)), [draft, submittedAt]);
   const errors = useMemo(() => {
     const map: Record<string, string> = {};
     if (!parsed.success) for (const i of parsed.error.issues) map[i.path.join('.')] ??= i.message;

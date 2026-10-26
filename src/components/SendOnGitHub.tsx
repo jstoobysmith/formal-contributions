@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { SITE } from '../lib/config';
+import { SITE, urls } from '../lib/config';
 import type { Submission } from '../lib/submission';
 import {
   changedInFork,
@@ -130,7 +130,7 @@ export function SendWithFork({
   if (!sender) {
     return (
       <p className="text-sm">
-        Enter the contributor’s GitHub username in step 2 first: the submission is sent from
+        Enter the contributor’s GitHub username in step 3 first: the submission is sent from
         that account.
       </p>
     );
@@ -241,11 +241,11 @@ export function SendWithFork({
                 </li>
                 <li>
                   <strong>Your account belongs to your employer or university</strong> (a “managed” account): such accounts
-                  cannot fork public projects. Use a personal GitHub account, and enter that username in step 2.
+                  cannot fork public projects. Use a personal GitHub account, and enter that username in step 3.
                 </li>
                 <li>
-                  <strong>Still stuck?</strong> Use one of the other ways to send it, below, or ask on the{' '}
-                  <a href={SITE.physlib.zulip}>Physlib Zulip</a>.
+                  <strong>Still stuck?</strong> Use one of the other ways to send it, below, or ask in{' '}
+                  <a href={`${urls.repo()}/issues`}>this site’s GitHub issues</a>.
                 </li>
               </ul>
             </details>
@@ -277,7 +277,7 @@ export function SendWithFork({
           {pullRequest ? (
             <Status tone="success">
               Your pull request is open: <a href={pullRequest}>{pullRequest}</a>. An automatic check will post a summary on it,
-              and the maintainers will review it there.
+              and the verifiers will review it there.
             </Status>
           ) : (
             <>
@@ -330,7 +330,7 @@ export function SendAsIssue({
   if (!sender) {
     return (
       <p className="text-sm">
-        Enter the contributor’s GitHub username in step 2 first: the submission is sent from
+        Enter the contributor’s GitHub username in step 3 first: the submission is sent from
         that account.
       </p>
     );
@@ -349,7 +349,7 @@ export function SendAsIssue({
   return (
     <div className="space-y-3 text-sm">
       <p>
-        The submission is sent as an issue on GitHub (a public page where the maintainers review it), from the account of{' '}
+        The submission is sent as an issue on GitHub (a public page where the verifiers review it), from the account of{' '}
         the contributor: <strong>@{sender}</strong>.{' '}
         <a href="https://github.com/login">Sign in to GitHub</a> as @{sender} first.
       </p>
@@ -364,13 +364,13 @@ export function SendAsIssue({
       ) : (
         <p>
           GitHub opens a new issue with your submission filled in. Check it, and click <em>Create</em> at the bottom. That is
-          all: an automatic check posts a summary on the issue, and the maintainers review it there.
+          all: an automatic check posts a summary on the issue, and the verifiers review it there.
         </p>
       )}
       {sent && typeof found === 'object' && (
         <Status tone="success">
           Your submission is {found.open ? 'open' : 'closed'}: <a href={found.url}>issue #{found.number}</a>.
-          {found.open ? ' You will be notified on GitHub when the maintainers comment.' : ''}
+          {found.open ? ' You will be notified on GitHub when the verifiers comment.' : ''}
         </Status>
       )}
       {sent && found === 'none' && (

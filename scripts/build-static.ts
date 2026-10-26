@@ -49,7 +49,7 @@ writeJson(out('data/reports.json'), index);
 writeJson(out('schemas/submission.schema.json'), {
   ...z.toJSONSchema(submissionSchema, { io: 'input' }),
   $id: urls.submissionSchema(),
-  title: 'Physlib Contributions submission',
+  title: 'Formal Contributions submission',
 });
 
 console.log(

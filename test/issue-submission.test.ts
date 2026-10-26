@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { MAINTAINERS } from '../src/lib/config';
+import { DEFAULT_PROJECT } from '../src/lib/config';
 import { isAcceptComment, sameJson, submissionFromIssueBody } from '../src/lib/issue-submission';
 import { issueApprovalDecision, type IssueComment } from '../src/lib/review';
 import { exampleSubmission } from './fixtures/example';
 
-const m = MAINTAINERS[0];
+const m = DEFAULT_PROJECT.verifiers[0];
 const at = (minute: number) => `2026-01-01T00:${String(minute).padStart(2, '0')}:00Z`;
 const accept = (minute: number, body = '/accept I have no conflict of interest.', user = { login: m.github, id: m.id }): IssueComment => ({
   user,
@@ -35,14 +35,14 @@ describe('submissions made as issues', () => {
     expect(isAcceptComment('/acceptable')).toBe(false);
   });
 
-  it('accepts an "/accept" from an uninvolved maintainer with the declaration', () => {
+  it('accepts an "/accept" from an uninvolved verifier with the declaration', () => {
     expect(issueApprovalDecision([accept(1)], issue, submission, 1)).toEqual({ ok: true, approvers: [m.github] });
   });
 
   it('needs the declaration, and ignores other people and other comments', () => {
     expect(issueApprovalDecision([accept(1, '/accept')], issue, submission, 1).ok).toBe(false);
     expect(issueApprovalDecision([accept(1, 'Looks good, no conflict of interest')], issue, submission, 1).ok).toBe(false);
-    expect(issueApprovalDecision([accept(1, undefined, { login: 'not-a-maintainer', id: 1 })], issue, submission, 1).ok).toBe(false);
+    expect(issueApprovalDecision([accept(1, undefined, { login: 'not-a-verifier', id: 1 })], issue, submission, 1).ok).toBe(false);
   });
 
   it('voids acceptances made before the issue was last edited', () => {
@@ -56,10 +56,10 @@ describe('submissions made as issues', () => {
     expect(issueApprovalDecision([accept(1)], { ...issue, author: m.github }, own, 1).ok).toBe(false);
   });
 
-  it('accepts a test submission when any listed maintainer comments "/accept"', () => {
+  it('accepts a test submission when any listed verifier comments "/accept"', () => {
     const test = { ...submission, section: 'test' as const };
     expect(issueApprovalDecision([], issue, test, 1).ok).toBe(false);
-    expect(issueApprovalDecision([accept(1, undefined, { login: 'not-a-maintainer', id: 1 })], issue, test, 1).ok).toBe(false);
+    expect(issueApprovalDecision([accept(1, undefined, { login: 'not-a-verifier', id: 1 })], issue, test, 1).ok).toBe(false);
     expect(issueApprovalDecision([accept(1, '/accept')], { ...issue, author: 'someone' }, test, 1).ok).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 # Page text
 
 The main blocks of text on the site, in Markdown, one file each. Edit them here;
-no code needs to change. Settings and policy (sections, criteria, maintainers,
+no code needs to change. Settings and policy (sections, criteria, projects and verifiers,
 approval rules) are in `../config/` instead.
 
 Each file starts with a short header saying **where** its text appears on the
@@ -36,8 +36,6 @@ and `report/` (report pages); the files at the top (`top-strip.md`,
 | `{reportSeries}` | the name of the report series |
 | `{issuerName}` | the issuer's name, as it appears on reports |
 | `{repository}` | this site's GitHub repository |
-| `{physlibSite}`, `{physlibZulip}`, `{physlibGettingStarted}` | Physlib's website, Zulip channel and getting-started page |
-| `{goodFirstIssues}` | Physlib's "good first issue" list |
 | `{sectionPhrase}` | in `report/certifies.md` only: "the Review section" etc. |
 
 The approval rules, signatures and keys, link parameters and workflow diagram

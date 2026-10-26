@@ -8,8 +8,8 @@
  * record from the GitHub API: the pull request that merged the submission
  * (approvals, merger), or, for submissions accepted on an issue
  * (data/issue-submissions.json), the issue and its "/accept" comments. A report is only
- * signed if enough maintainers (config/maintainers.json) other than the
- * recipient and the pull request author approved it.
+ * signed if enough verifiers of its primary project (config/projects.json),
+ * other than the recipient and the pull request author, approved it.
  *
  * Locally, for testing:
  *   npm run sign -- --key .keys/key-1.json --no-review-check

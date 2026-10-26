@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EVIDENCE_KINDS, SECTION_IDS, sectionById } from './config';
+import { EVIDENCE_KINDS, PROJECTS, projectById, projectsOf, SECTION_IDS, sectionById } from './config';
 
 /** Single-line text: no control characters (they could forge headings in Markdown previews). */
 const line = (label: string, min: number, max: number) =>
@@ -69,6 +69,18 @@ export const submissionSchema = z
   .object({
     $schema: z.string().optional(),
     section: z.enum(SECTION_IDS, 'Choose a section'),
+    /**
+     * The projects the work is for, primary first (like arXiv's primary category
+     * and cross-lists). Only verifiers of the primary project may accept it.
+     * Optional only for files made before projects existed: they belong to the
+     * default project (config/site.json). The form always fills it in.
+     */
+    projects: z
+      .array(z.enum(PROJECTS.map((p) => p.id) as [string, ...string[]], 'Choose a project'))
+      .min(1, 'Choose a project')
+      .max(PROJECTS.length)
+      .refine((ids) => new Set(ids).size === ids.length, 'Each project may be chosen only once')
+      .optional(),
     title: line('the title', 5, 160),
     summary: z
       .string()
@@ -94,6 +106,9 @@ export const submissionSchema = z
   .strict();
 
 export type Submission = z.infer<typeof submissionSchema>;
+
+/** The form's stricter check: a new submission must name its project. */
+export const newSubmissionSchema = submissionSchema.refine((s) => !!s.projects?.length, { message: 'Choose a project', path: ['projects'] });
 export type Evidence = z.infer<typeof evidenceSchema>;
 
 /** Adds the https:// that people often leave off a pasted link. */
@@ -221,12 +236,18 @@ export interface PullRequestPeople {
 
 /**
  * "opened by @a; reviewed by @b, @c", with the contributor in bold, so that
- * maintainers can see whether they wrote or reviewed each pull request. The
+ * verifiers can see whether they wrote or reviewed each pull request. The
  * "@" is escaped, so nobody is notified.
  */
 export function pullRequestPeople(p: PullRequestPeople, contributor: string): string {
   const who = (login: string) => (login.toLowerCase() === contributor.toLowerCase() ? `**${md(`@${login}`)}**` : md(`@${login}`));
   return `opened by ${who(p.author)}; ${p.reviewers.length ? `reviewed by ${p.reviewers.map(who).join(', ')}` : 'no reviews'}`;
+}
+
+/** "Physlib", or "Physlib (also Another)" with secondary projects. */
+export function projectNames(s: Pick<Submission, 'projects'>): string {
+  const [primary, ...also] = projectsOf(s).map((id) => md(projectById(id)?.name ?? id));
+  return also.length ? `${primary} (also ${also.join(', ')})` : primary;
 }
 
 /**
@@ -237,6 +258,7 @@ export function submissionMarkdown(s: Submission, people: Map<string, PullReques
   const section = sectionById(s.section)!;
   const lines = [
     `**Section ${section.numeral}. ${md(section.name)}**: ${md(section.reportName)}`,
+    `**Project:** ${projectNames(s)}`,
     `**Recipient:** ${md(s.recipient.name)} (@${s.recipient.github})`,
   ];
   if (s.collaborators?.length) {

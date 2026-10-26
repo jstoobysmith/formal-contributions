@@ -1,4 +1,4 @@
-import { didWebBaseUrl, EVIDENCE_KINDS, ISSUER_DID, maintainerByLogin, SITE, sectionById, urls, type Section } from './config';
+import { didWebBaseUrl, EVIDENCE_KINDS, ISSUER_DID, projectById, projectsOf, SITE, sectionById, urls, verifierByLogin, type Section } from './config';
 import { evidenceTitle, type Submission } from './submission';
 import type { DataIntegrityProof, JsonObject } from './dataIntegrity';
 
@@ -10,7 +10,11 @@ export const OB_CONTEXT = [
 /** Wording used in review records; read back by reviewParticipants. */
 const DECLARED_NO_CONFLICT = 'declared no conflict of interest';
 
-/** Evidence genre of the pull request in which a report was reviewed and accepted. */
+/**
+ * Evidence genre of the pull request in which a report was reviewed and accepted.
+ * Kept as "Maintainer review" (from before verifiers were called verifiers):
+ * it is part of every signed report, and is how the site finds the review record.
+ */
 export const REVIEW_GENRE = 'Maintainer review';
 
 /** The review record of a submission, taken from its merged pull request or accepted issue. */
@@ -33,8 +37,11 @@ export function issuerProfile() {
   };
 }
 
-/** The Open Badges Achievement for one series, e.g. "Physlib Review Report". */
-export function achievement(section: Section) {
+/**
+ * The Open Badges Achievement for one series, e.g. "Review Report". In a
+ * report, its tags also name the report's projects, primary first.
+ */
+export function achievement(section: Section, projectIds: string[] = []) {
   return {
     id: urls.achievement(section.id),
     type: ['Achievement'],
@@ -47,7 +54,7 @@ export function achievement(section: Section) {
     },
     image: { id: urls.badgeImage(section.id), type: 'Image', caption: `${section.reportName} badge` },
     creator: issuerProfile(),
-    tag: ['Physlib', 'Lean 4', 'formalization', section.name],
+    tag: [...projectIds.map((id) => projectById(id)?.name ?? id), 'Lean 4', 'formalization', section.name],
   };
 }
 
@@ -56,6 +63,12 @@ const monthStart = (m: string) => `${m}-01T00:00:00Z`;
 const monthEnd = (m: string) => {
   const [y, mo] = m.split('-').map(Number);
   return `${m}-${String(new Date(Date.UTC(y, mo, 0)).getUTCDate()).padStart(2, '0')}T00:00:00Z`;
+};
+
+/** "Physlib", or "Physlib and Another": the projects a report is for. */
+const projectNamesPlain = (s: Submission) => {
+  const names = projectsOf(s).map((id) => projectById(id)?.name ?? id);
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
 };
 
 export function buildCredential(slug: string, submission: Submission, record: ReviewRecord): JsonObject {
@@ -80,8 +93,8 @@ export function buildCredential(slug: string, submission: Submission, record: Re
   }));
 
   if (record.pullRequest) {
-    // Names are recorded at signing time, so the report stays readable if the maintainer list changes.
-    const who = (login: string) => (maintainerByLogin(login) ? `${maintainerByLogin(login)!.name} (@${login})` : `@${login}`);
+    // Names are recorded at signing time, so the report stays readable if the list of verifiers changes.
+    const who = (login: string) => (verifierByLogin(login) ? `${verifierByLogin(login)!.name} (@${login})` : `@${login}`);
     const names = (record.reviewers ?? []).map(who);
     const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
     const reviewers = names.length
@@ -105,7 +118,7 @@ export function buildCredential(slug: string, submission: Submission, record: Re
     name: `${section.reportName}: ${submission.title}`,
     description: section.test
       ? `A test of the ${SITE.title} submission, review and signing, made by ${recipient.name}: “${submission.title}”. Not a record of real work.`
-      : `${SITE.reportSeries} on work by ${recipient.name}: “${submission.title}”` +
+      : `${SITE.reportSeries} on work for ${projectNamesPlain(submission)} by ${recipient.name}: “${submission.title}”` +
         (submission.collaborators?.length ? `, joint work with ${submission.collaborators.map((c) => c.name).join(', ')}.` : '.'),
     issuer: issuerProfile(),
     validFrom: record.acceptedAt,
@@ -120,7 +133,7 @@ export function buildCredential(slug: string, submission: Submission, record: Re
             activityEndDate: monthEnd(submission.period.to),
           }
         : {}),
-      achievement: achievement(section),
+      achievement: achievement(section, projectsOf(submission)),
     },
     evidence,
     // No `credentialSchema`: its type `1EdTechJsonSchemaValidator2019` is not defined in any

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { sectionById } from '../lib/config';
+import { projectById, sectionById } from '../lib/config';
 import type { ReportEntry } from '../lib/reports';
 import { formatDate } from '../site/data';
 
@@ -9,7 +9,8 @@ export function ReportListItem({ entry, showSummary = false }: { entry: ReportEn
   return (
     <li className="border-b border-rule py-3 last:border-b-0">
       <p className="text-sm text-muted">
-        Report no. {entry.number} · {section ? `${section.numeral}. ${section.name}` : entry.section} · accepted {formatDate(entry.acceptedAt)}
+        Report no. {entry.number} · {section ? `${section.numeral}. ${section.name}` : entry.section} ·{' '}
+        {entry.projects.map((id) => projectById(id)?.name ?? id).join(', ')} · accepted {formatDate(entry.acceptedAt)}
         {entry.revoked && <span className="ml-2 font-bold text-danger">Revoked</span>}
       </p>
       <p className="mt-0.5 font-serif text-[1.125rem] leading-snug">

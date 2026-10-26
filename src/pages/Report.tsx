@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import Prose from '../components/Prose';
 import VerificationPanel from '../components/VerificationPanel';
 import { BadgeImage, Container, ErrorNote, linkButtonClass, OrcidIcon, Spinner } from '../components/ui';
-import { maintainerByLogin, sectionById, SPECIMEN_SLUG, urls } from '../lib/config';
+import { DEFAULT_PROJECT, projectById, sectionById, SPECIMEN_SLUG, urls, verifierByLogin } from '../lib/config';
 import { bakeSvg } from '../lib/baking';
 import { evidenceOf, recipientOf, reviewParticipants, sectionIdOf, titleOf, type OpenBadgeCredential } from '../lib/credential';
 import { citations, linkedInUrl, reportReference, type ReportEntry } from '../lib/reports';
@@ -36,11 +36,11 @@ function Heading({ children }: { children: ReactNode }) {
   return <h2 className="mt-8 border-b border-rule pb-1 font-serif text-lg font-bold">{children}</h2>;
 }
 
-/** A GitHub login, shown as the maintainer's name when they are listed. */
+/** A GitHub login, shown as the verifier's name when they are listed. */
 function Person({ login }: { login: string }) {
-  const m = maintainerByLogin(login);
+  const m = verifierByLogin(login);
   return m ? (
-    <Link to="/about#maintainers" title={`@${login}`}>
+    <Link to="/about#verifiers" title={`@${login}`}>
       {m.name}
     </Link>
   ) : (
@@ -125,6 +125,8 @@ export default function Report() {
   const notReal = specimen || test;
   const entry = reports.status === 'ready' ? reports.data.published.find((e) => e.slug === slug) : undefined;
   const section = sectionById(sectionIdOf(c));
+  // The report's primary project, from the index of reports (the default project until it has loaded).
+  const project = projectById(entry?.projects[0] ?? '') ?? DEFAULT_PROJECT;
   const recipient = recipientOf(c);
   const { work, review } = evidenceOf(c);
   const people = reviewParticipants(review?.description);
@@ -187,6 +189,17 @@ export default function Report() {
         <table className="mt-6 w-full table-fixed text-sm">
           <tbody>
             <Row label="Series">{c.credentialSubject.achievement.name}</Row>
+            {entry && !notReal && (
+              <Row label={entry.projects.length > 1 ? 'Projects' : 'Project'}>
+                {join(
+                  entry.projects.map((id, i) => {
+                    const p = projectById(id);
+                    const name = p ? <a href={p.url}>{p.name}</a> : id;
+                    return <span key={id}>{name}{i === 0 && entry.projects.length > 1 ? ' (primary)' : ''}</span>;
+                  }),
+                )}
+              </Row>
+            )}
             {subject.activityStartDate && subject.activityEndDate && (
               <Row label="Work period">
                 {formatDate(subject.activityStartDate, { month: 'long', year: 'numeric' })} –{' '}
@@ -247,12 +260,16 @@ export default function Report() {
               )}
             </>
           ) : (
-            <p className="text-muted">{specimen ? 'A real report links the page on GitHub where it was reviewed.' : 'Accepted by the maintainers.'}</p>
+            <p className="text-muted">{specimen ? 'A real report links the page on GitHub where it was reviewed.' : 'Accepted by the verifiers.'}</p>
           )}
           {section?.test ? (
             <Content file="report/certifies-test" className="pt-1 text-muted" />
           ) : (
-            <Content file="report/certifies" values={{ sectionPhrase: section ? `the ${section.name} section` : 'this report' }} className="pt-1 text-muted" />
+            <Content
+              file="report/certifies"
+              values={{ sectionPhrase: section ? `the ${section.name} section` : 'this report', projectName: project.name, projectDescription: project.description }}
+              className="pt-1 text-muted"
+            />
           )}
         </div>
 

@@ -5,7 +5,7 @@ import { submissionMarkdown, type Submission } from '../lib/submission';
 /**
  * The usual way to send a submission is as an issue (`issueUrl`): GitHub's
  * new-issue page with the submission form filled in, so no fork is needed;
- * `findSubmissionIssue` finds it afterwards. A maintainer accepts it there
+ * `findSubmissionIssue` finds it afterwards. A verifier accepts it there
  * (see src/lib/issue-submission.ts).
  *
  * Two other ways turn a submission into a pull request on the reports repository:
@@ -32,7 +32,7 @@ export function prBody(s: Submission) {
     submissionMarkdown(s),
     '',
     '---',
-    '_Merging this pull request accepts the report. The signing workflow then signs it as an Open Badges 3.0 credential, provided the required maintainer approvals are present._',
+    '_Merging this pull request accepts the report. The signing workflow then signs it as an Open Badges 3.0 credential, provided the required approvals from verifiers are present._',
   ].join('\n');
 }
 
@@ -76,7 +76,7 @@ export function pullRequestUrl(fork: Fork, s: Submission) {
   const params = new URLSearchParams({
     expand: '1',
     title: prTitle(s),
-    body: 'A submission made with the form on the Physlib Contributions site. An automatic check will post a summary of it here.',
+    body: 'A submission made with the form on the Formal Contributions site. An automatic check will post a summary of it here.',
   });
   return `https://github.com/${upstreamRepo()}/compare/${branch}...${fork.owner}:${fork.name}:${branch}?${params}`;
 }

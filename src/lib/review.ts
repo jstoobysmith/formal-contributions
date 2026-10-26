@@ -1,7 +1,7 @@
 /**
  * Who may approve a report. Used by scripts/sign.ts before anything is signed.
  */
-import { isTestSection, maintainerOf, SITE } from './config';
+import { isTestSection, primaryProjectOf, SITE, verifierOf } from './config';
 import { ACCEPT_COMMAND, isAcceptComment } from './issue-submission';
 import type { Submission } from './submission';
 
@@ -23,10 +23,10 @@ export interface PullRequestFacts {
 
 export type ApprovalDecision = { ok: true; approvers: string[] } | { ok: false; reason: string };
 
-/** The phrase an approving maintainer includes in their review, e.g. "I have no conflict of interest". */
+/** The phrase an approving verifier includes in their review, e.g. "I have no conflict of interest". */
 export const CONFLICT_DECLARATION = SITE.review.conflictDeclaration;
 
-type Credited = Pick<Submission, 'recipient' | 'collaborators'>;
+type Credited = Pick<Submission, 'recipient' | 'collaborators'> & Partial<Pick<Submission, 'projects'>>;
 
 /** People who may not approve a submission: those it credits, and those who put it forward. */
 export function conflictedLogins(pr: { author: string }, s: Credited): Set<string> {
@@ -35,8 +35,9 @@ export function conflictedLogins(pr: { author: string }, s: Credited): Set<strin
 
 /**
  * Only each person's latest review counts, and only if it was made on the
- * commit that was merged. An approval counts only if it is from a listed
- * maintainer who is not credited by, and did not put forward, the submission,
+ * commit that was merged. An approval counts only if it is from a verifier of
+ * the submission's primary project who is not credited by, and did not put
+ * forward, the submission,
  * and who declared no conflict of interest in the review. The pull request
  * must be opened by the contributor, and may not be merged by
  * anyone the report credits.
@@ -68,8 +69,9 @@ function strictDecision(reviews: PullRequestReview[], pr: PullRequestFacts, subm
     latest.set(r.user!.login.toLowerCase(), r);
   }
   const conflicted = conflictedLogins(pr, submission);
+  const project = primaryProjectOf(submission);
   const approvals = [...latest.values()].filter(
-    (r) => r.state === 'APPROVED' && r.commit_id === pr.headSha && maintainerOf(r.user!) && !conflicted.has(r.user!.login.toLowerCase()),
+    (r) => r.state === 'APPROVED' && r.commit_id === pr.headSha && verifierOf(r.user!, project) && !conflicted.has(r.user!.login.toLowerCase()),
   );
   const declared = approvals.filter((r) => (r.body ?? '').toLowerCase().includes(CONFLICT_DECLARATION.toLowerCase()));
 
@@ -78,7 +80,7 @@ function strictDecision(reviews: PullRequestReview[], pr: PullRequestFacts, subm
     return {
       ok: false,
       reason:
-        `it needs ${requiredApprovals} approval(s), on its final version, from listed maintainers who are not involved in it and who wrote “${CONFLICT_DECLARATION}” in their approval; it has ${declared.length}` +
+        `it needs ${requiredApprovals} approval(s), on its final version, from verifiers of ${project.name} who are not involved in it and who wrote “${CONFLICT_DECLARATION}” in their approval; it has ${declared.length}` +
         (undeclared ? ` (${undeclared} approval(s) without the declaration)` : ''),
     };
   }
@@ -109,8 +111,8 @@ export interface IssueFacts {
  * edit to the issue afterwards voids it (as a new commit voids a pull request
  * approval). The issue must be opened by the contributor.
  *
- * A test submission needs no approvals, but is accepted only when a listed
- * maintainer comments "/accept" (for a pull request, a maintainer's merge).
+ * A test submission needs no approvals, but is accepted only when a verifier
+ * of its primary project comments "/accept" (for a pull request, a merge).
  */
 export function issueApprovalDecision(
   comments: IssueComment[],
@@ -127,12 +129,13 @@ export function issueApprovalDecision(
     commit_id: !issue.lastEditedAt || c.created_at > issue.lastEditedAt ? CURRENT : 'earlier',
     submitted_at: c.created_at,
   }));
+  const project = primaryProjectOf(submission);
   if (submission.section && isTestSection(submission.section)) {
-    const byMaintainer = reviews.some((r) => r.commit_id === CURRENT && maintainerOf(r.user!));
-    if (!byMaintainer) return { ok: false, reason: 'a listed maintainer has not yet commented “/accept” on its current text' };
+    const byVerifier = reviews.some((r) => r.commit_id === CURRENT && verifierOf(r.user!, project));
+    if (!byVerifier) return { ok: false, reason: `a verifier of ${project.name} has not yet commented “/accept” on its current text` };
   }
   const decision = approvalDecision(reviews, { author: issue.author, headSha: CURRENT }, submission, requiredApprovals);
-  const voided = reviews.filter((r) => r.commit_id !== CURRENT && maintainerOf(r.user!)).length;
+  const voided = reviews.filter((r) => r.commit_id !== CURRENT && verifierOf(r.user!, project)).length;
   return decision.ok || !voided
     ? decision
     : { ok: false, reason: `${decision.reason} (${voided} earlier “${ACCEPT_COMMAND}” no longer count${voided === 1 ? 's' : ''}, because the submission was edited after it)` };

@@ -3,14 +3,14 @@ import { ACCEPT_COMMAND } from '../lib/issue-submission';
 import { Content } from '../components/Content';
 import { Container, PageTitle } from '../components/ui';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
-import { DNS_DOMAIN, ISSUER_DID, MAINTAINERS, SECTIONS, SIGNING_KEY, SITE, SITE_URL, urls } from '../lib/config';
+import { DNS_DOMAIN, ISSUER_DID, PROJECTS, SECTIONS, SIGNING_KEY, SITE, SITE_URL, urls } from '../lib/config';
 import { PREFILL_PARAMETERS, prefillParams } from '../lib/prefill';
 import { asset } from '../site/data';
 import { useTitle } from '../site/useTitle';
 
 const CONTENTS = [
   ['purpose', 'Purpose'],
-  ['maintainers', 'Who reviews reports'],
+  ['verifiers', 'Who reviews reports'],
   ['process', 'How a report is made'],
   ['prefill', 'Links that fill in the form'],
   ['meaning', 'What a report certifies'],
@@ -47,18 +47,29 @@ export default function About() {
           </h2>
           <Content file="about/purpose" />
 
-          <h2 id="maintainers" className="scroll-mt-4">
+          <h2 id="verifiers" className="scroll-mt-4">
             Who reviews reports
           </h2>
-          <Content file="about/maintainers" />
-          <ul>
-            {MAINTAINERS.map((m) => (
-              <li key={m.github}>
-                <a href={urls.github(m.github)}>{m.name}</a>
-                {m.role || m.affiliation ? ` (${[m.role, m.affiliation].filter(Boolean).join(', ')})` : ''}
-              </li>
-            ))}
-          </ul>
+          <Content file="about/verifiers" />
+          {PROJECTS.map((p) => (
+            <div key={p.id} id={`verifiers-${p.id}`}>
+              <h3>
+                <a href={p.url}>{p.name}</a>
+              </h3>
+              {p.verifiers.length ? (
+                <ul>
+                  {p.verifiers.map((m) => (
+                    <li key={m.github}>
+                      <a href={urls.github(m.github)}>{m.name}</a>
+                      {m.role || m.affiliation ? ` (${[m.role, m.affiliation].filter(Boolean).join(', ')})` : ''}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No verifiers yet. Submissions for {p.name} cannot be accepted until one is appointed.</p>
+              )}
+            </div>
+          ))}
           <p>{SITE.review.appointment}</p>
           <p>
             Reports are signed by an automatic step on GitHub (the signing workflow), which runs when a submission is accepted. It
@@ -66,7 +77,8 @@ export default function About() {
           </p>
           <ul>
             <li>
-              {approvals === 1 ? 'at least one listed maintainer has' : `at least ${approvals} listed maintainers have`} approved the
+              {approvals === 1 ? 'at least one verifier' : `at least ${approvals} verifiers`} of the submission’s primary project{' '}
+              {approvals === 1 ? 'has' : 'have'} approved the
               submission (by commenting “{ACCEPT_COMMAND}” on its issue, or approving its pull request), writing “
               {SITE.review.conflictDeclaration}” in their approval;
             </li>
@@ -78,7 +90,7 @@ export default function About() {
             <li>a pull request was not merged by anyone the report credits.</li>
           </ul>
           <p>
-            The one exception is test submissions, made to try the process out: they are signed once a maintainer accepts them,
+            The one exception is test submissions, made to try the process out: they are signed once a verifier of their project accepts them,
             without these rules, and their reports say they are tests and are not numbered or listed.
           </p>
           <Content file="about/approval-notes" />
@@ -167,7 +179,7 @@ export default function About() {
             <a href="https://www.imsglobal.org/spec/ob/v3p0/">Open Badges 3.0</a> credential, a standard format
             for digital certificates. It is signed with a private key held as a secret of a protected GitHub environment, which only
             the signing workflow on the main branch can use; any change to the workflows or code on the main branch needs a
-            maintainer’s review. The matching
+            review by the site’s code owners. The matching
             public key{SIGNING_KEY && (
               <>
                 , <code className="break-all font-mono text-sm">{SIGNING_KEY.publicKeyMultibase}</code>,

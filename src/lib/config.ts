@@ -4,7 +4,7 @@
 import site from '../../config/site.json';
 import sectionsJson from '../../config/sections.json';
 import keysJson from '../../config/keys.json';
-import maintainersJson from '../../config/maintainers.json';
+import projectsJson from '../../config/projects.json';
 
 /**
  * active/temporary: signs new reports. retired: no longer signs, but reports it
@@ -63,13 +63,27 @@ export interface Revocation {
   date?: string;
 }
 
-export interface Maintainer {
+/** Someone who may review and accept submissions for a project (config/projects.json). */
+export interface Verifier {
   github: string;
   /** Numeric GitHub user id. When given, approvals must come from this account even if its login changes hands. */
   id?: number;
   name: string;
   affiliation?: string;
   role?: string;
+}
+
+/** A project that reports can be about (config/projects.json), with the verifiers who accept submissions for it. */
+export interface Project {
+  id: string;
+  name: string;
+  /** One sentence, for lists. */
+  description: string;
+  url: string;
+  /** Its GitHub repository, "owner/name": pull requests given by number are taken to be in it. */
+  repository: string;
+  zulip?: string;
+  verifiers: Verifier[];
 }
 
 export const SITE = site;
@@ -83,7 +97,29 @@ export const ALL_SECTIONS = sectionsJson as Section[];
 export const SECTIONS = ALL_SECTIONS.filter((s) => !s.test);
 export const TEST_SECTION = ALL_SECTIONS.find((s) => s.test);
 export const KEYS = keysJson as KeyConfig[];
-export const MAINTAINERS = maintainersJson as Maintainer[];
+export const PROJECTS = projectsJson as Project[];
+
+export function projectById(id: string): Project | undefined {
+  return PROJECTS.find((p) => p.id === id);
+}
+
+/** The project of submissions that name none: those made before projects were added. */
+export const DEFAULT_PROJECT = projectById(site.defaultProject) ?? PROJECTS[0];
+
+/** A submission's projects, primary first. Submissions that name none belong to the default project. */
+export const projectsOf = (s: { projects?: string[] }): string[] => (s.projects?.length ? s.projects : [DEFAULT_PROJECT.id]);
+
+/** A submission's primary project: only its verifiers may accept the submission. */
+export const primaryProjectOf = (s: { projects?: string[] }): Project => projectById(projectsOf(s)[0]) ?? DEFAULT_PROJECT;
+
+/** Everyone who verifies for at least one project, each listed once. */
+export const VERIFIERS: Verifier[] = PROJECTS.flatMap((p) => p.verifiers).filter(
+  (v, i, all) => all.findIndex((w) => w.github.toLowerCase() === v.github.toLowerCase()) === i,
+);
+
+/** The projects a GitHub user verifies for. */
+export const projectsVerifiedBy = (login: string): Project[] =>
+  PROJECTS.filter((p) => p.verifiers.some((v) => v.github.toLowerCase() === login.toLowerCase()));
 
 export function sectionById(id: string): Section | undefined {
   return ALL_SECTIONS.find((s) => s.id === id);
@@ -92,14 +128,18 @@ export function sectionById(id: string): Section | undefined {
 /** Whether a section id is the test section's. */
 export const isTestSection = (id: string) => !!sectionById(id)?.test;
 
-export function maintainerByLogin(login: string): Maintainer | undefined {
-  return MAINTAINERS.find((m) => m.github.toLowerCase() === login.toLowerCase());
+/** A verifier of any project, by GitHub login (for showing names). */
+export function verifierByLogin(login: string): Verifier | undefined {
+  return VERIFIERS.find((v) => v.github.toLowerCase() === login.toLowerCase());
 }
 
-/** The listed maintainer behind a GitHub account, matching the numeric id when one is configured. */
-export function maintainerOf(user: { login: string; id?: number }): Maintainer | undefined {
-  const m = maintainerByLogin(user.login);
-  return m && (m.id === undefined || m.id === user.id) ? m : undefined;
+/**
+ * The verifier of `project` behind a GitHub account, matching the numeric id
+ * when one is configured; undefined if the account does not verify for it.
+ */
+export function verifierOf(user: { login: string; id?: number }, project: Project): Verifier | undefined {
+  const v = project.verifiers.find((w) => w.github.toLowerCase() === user.login.toLowerCase());
+  return v && (v.id === undefined || v.id === user.id) ? v : undefined;
 }
 
 /** Whether a key with this status may sign new reports. */
@@ -193,7 +233,5 @@ export const urls = {
   repo: () => `https://github.com/${site.repository.owner}/${site.repository.name}`,
   /** Submissions waiting for review: the open issues labelled "submission". */
   reviewQueue: () => `https://github.com/${site.repository.owner}/${site.repository.name}/issues?q=is%3Aissue%20is%3Aopen%20label%3A${SUBMISSION_LABEL}`,
-  physlibRepo: () => `https://github.com/${site.physlib.repository}`,
-  goodFirstIssues: () => `https://github.com/${site.physlib.repository}/issues?q=is%3Aopen+label%3A%22good+first+issue%22`,
   github: (login: string) => `https://github.com/${login}`,
 };

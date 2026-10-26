@@ -68,7 +68,7 @@ export default definePart({
       }
       return warn(
         `${plural(unsigned.length, 'submission')} on main ${unsigned.length === 1 ? 'is' : 'are'} not signed. ${reasons.join(' | ')}`,
-        'A maintainer who is not involved approves it (on its issue, a “/accept” comment; on its pull request, an approving review, each with the conflict declaration), then re-run “Sign and deploy”. To withdraw a submission instead, delete its file with a pull request.',
+        'A verifier of its project who is not involved approves it (on its issue, a “/accept” comment; on its pull request, an approving review, each with the conflict declaration), then re-run “Sign and deploy”. To withdraw a submission instead, delete its file with a pull request.',
       );
     });
 

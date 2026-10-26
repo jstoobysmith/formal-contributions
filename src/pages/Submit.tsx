@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { buttonClass, Container, ErrorNote, Field, Input, inputClass, linkButtonClass, PageTitle } from '../components/ui';
-import { EVIDENCE_KINDS, SECTIONS, SITE, SITE_URL, sectionById, TEST_SECTION, urls, type EvidenceKind, type Section } from '../lib/config';
+import { DEFAULT_PROJECT, EVIDENCE_KINDS, projectById, PROJECTS, SECTIONS, SITE, SITE_URL, sectionById, TEST_SECTION, urls, type EvidenceKind, type Section } from '../lib/config';
 import { prefillParams } from '../lib/prefill';
 import { evidenceTitle, githubLoginFromInput, guessEvidenceKind, normaliseUrl, type Submission } from '../lib/submission';
 import { download } from '../site/data';
@@ -10,6 +10,7 @@ import { ImportPullRequests } from '../components/ImportPullRequests';
 import { SendAsIssue, SendWithFork } from '../components/SendOnGitHub';
 import { openSubmissionPullRequest, submissionJson, whoAmI } from '../site/github';
 import {
+  choosePrimaryProject,
   chooseSection,
   emptyEvidence,
   prefillFromDraft,
@@ -18,6 +19,7 @@ import {
   type Draft,
   type EvidenceDraft,
   type PersonDraft,
+  toggleSecondaryProject,
 } from '../site/useSubmissionDraft';
 import { useTitle } from '../site/useTitle';
 
@@ -94,6 +96,47 @@ function SectionOption({ section, checked, onChoose }: { section: Section; check
         <span className="text-sm text-muted">— {section.summary}</span>
       </span>
     </label>
+  );
+}
+
+/**
+ * The projects the work is for: one primary project, whose verifiers review
+ * the submission, and optionally others it is also relevant to (like arXiv's
+ * primary category and cross-lists).
+ */
+function ProjectChoice({ draft, update, error }: { draft: Draft; update: (fn: (d: Draft) => Draft) => void; error?: string }) {
+  const [primary, ...also] = draft.projects;
+  return (
+    <>
+      <p className="mb-3 text-sm text-muted">
+        Choose the project the work is mainly for. Its verifiers review the submission. You can also list other projects the work
+        is relevant to.
+      </p>
+      {error && <p className="mb-2 text-xs text-danger" data-invalid="true">{error}</p>}
+      <div className="space-y-2">
+        {PROJECTS.map((p) => (
+          <label key={p.id} className="flex cursor-pointer gap-2">
+            <input type="radio" name="primary-project" value={p.id} checked={primary === p.id} onChange={() => update((d) => choosePrimaryProject(d, p.id))} className="mt-1" />
+            <span>
+              <strong>{p.name}</strong> <span className="text-sm text-muted">— {p.description}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {primary && PROJECTS.length > 1 && (
+        <div className="mt-4">
+          <p className="text-sm font-bold">Also relevant to (optional)</p>
+          <div className="mt-1 space-y-1">
+            {PROJECTS.filter((p) => p.id !== primary).map((p) => (
+              <label key={p.id} className="flex cursor-pointer gap-2 text-sm">
+                <input type="checkbox" checked={also.includes(p.id)} onChange={() => update((d) => toggleSecondaryProject(d, p.id))} className="mt-1" />
+                <span>{p.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -209,6 +252,8 @@ export default function Submit() {
   const senderInput = githubLoginFromInput(draft.github);
   const sender = senderInput && !errors['recipient.github'] ? senderInput : undefined;
   const section = sectionById(draft.section)!;
+  // Until a project is chosen, the default one gives the examples (the repository for pull requests, the wording).
+  const project = projectById(draft.projects[0] ?? '') ?? DEFAULT_PROJECT;
   // Imported pull requests are evidence of this kind: reviews in the Review section, pull requests elsewhere.
   const prKind = pullRequestKind(section.id);
   const setEvidence = (i: number, patch: Partial<EvidenceDraft>) =>
@@ -265,7 +310,7 @@ export default function Submit() {
               </div>
             ) : (
               <div className="mt-3 border border-rule bg-shade px-3 py-2 text-sm">
-                <p className="font-bold">The maintainers will check that:</p>
+                <p className="font-bold">The verifiers will check that:</p>
                 <ol className="mt-1 ml-5 list-decimal space-y-0.5">
                   {section.criteria.map((c) => (
                     <li key={c}>{c}</li>
@@ -286,7 +331,11 @@ export default function Submit() {
             )}
           </Step>
 
-          <Step n={2} title="Who did the work">
+          <Step n={2} title="Project">
+            <ProjectChoice draft={draft} update={update} error={err('projects') ?? err('projects.0')} />
+          </Step>
+
+          <Step n={3} title="Who did the work">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Full name" error={err('recipient.name')}>
                 <Input value={draft.name} onChange={(e) => set('name', e.target.value)} autoComplete="name" data-invalid={!!err('recipient.name')} />
@@ -326,12 +375,12 @@ export default function Submit() {
             </div>
           </Step>
 
-          <Step n={3} title="The work">
+          <Step n={4} title="The work">
             <div className="space-y-4">
               <Field label="Title" error={err('title')} hint={`One line, as for a paper, e.g. “${section.examples?.[0] ?? 'Reviews of the tensor species refactor'}”.`}>
                 <Input value={draft.title} onChange={(e) => set('title', e.target.value)} data-invalid={!!err('title')} />
               </Field>
-              <Field label="Summary" error={err('summary')} hint="What was done and why it mattered to Physlib, in a few sentences. Separate paragraphs with a blank line.">
+              <Field label="Summary" error={err('summary')} hint={`What was done and why it mattered to ${project.name}, in a few sentences. Separate paragraphs with a blank line.`}>
                 <textarea value={draft.summary} onChange={(e) => set('summary', e.target.value)} rows={6} className={`${inputClass} font-serif text-base`} data-invalid={!!err('summary')} />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -345,12 +394,13 @@ export default function Submit() {
             </div>
           </Step>
 
-          <Step n={4} title="Evidence">
+          <Step n={5} title="Evidence">
             <p className="mb-3 text-sm text-muted">
               Links to the pull requests, reviews, commits, modules or Zulip threads that make up the work. One report can cover
               many links.
             </p>
             <ImportPullRequests
+              repo={project.repository}
               kind={prKind}
               existingUrls={draft.evidence.map((e) => e.url)}
               onAdd={(urls) =>
@@ -387,7 +437,7 @@ export default function Submit() {
                             setEvidence(i, { url, ...(e.kindChosen ? {} : { kind: guessEvidenceKind(normaliseUrl(url), section.evidenceKinds[0]) }) });
                           }}
                           onBlur={() => setEvidence(i, { url: normaliseUrl(e.url) })}
-                          placeholder={`https://github.com/${SITE.physlib.repository}/pull/123`}
+                          placeholder={`https://github.com/${project.repository}/pull/123`}
                           data-invalid={!!err(`evidence.${i}.url`)}
                         />
                       </Field>
@@ -416,7 +466,7 @@ export default function Submit() {
             </button>
           </Step>
 
-          <Step n={5} title="Send">
+          <Step n={6} title="Send">
             {attempted && !submission && (
               <div className="mb-3">
                 <ErrorNote>Some fields need attention; they are marked above.</ErrorNote>
@@ -429,7 +479,7 @@ export default function Submit() {
               <div className="mt-3 space-y-4 border-l-2 border-rule pl-4">
                 <div>
                   <p className="font-bold">As a pull request from a fork</p>
-                  <p className="mt-1 mb-2 text-muted">For people who prefer pull requests. The maintainers review it there instead.</p>
+                  <p className="mt-1 mb-2 text-muted">For people who prefer pull requests. The verifiers review it there instead.</p>
                   <SendWithFork
                     sender={sender}
                     slug={slug}
@@ -441,7 +491,7 @@ export default function Submit() {
                 <div>
                   <p className="font-bold">Open the pull request from this page</p>
                   <p className="mt-1 text-muted">
-                    Needs a GitHub <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=Physlib%20Contributions">personal access token</a>{' '}
+                    Needs a GitHub <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=Formal%20Contributions">personal access token</a>{' '}
                     with the <code className="font-mono">public_repo</code> scope. The token is used once, sent only to GitHub, and
                     not stored. Delete it on GitHub afterwards.
                   </p>

@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { SECTIONS, SITE, urls } from '../lib/config';
-import { asset } from '../site/data';
+import { PROJECTS, SECTIONS, SITE, urls } from '../lib/config';
 import { Content } from './Content';
 import { Container } from './ui';
 
@@ -49,9 +48,6 @@ function Header() {
       <div className="border-b border-rule bg-white">
         <Container className="flex items-center justify-between gap-4 py-1.5 text-xs text-muted">
           <Content file="top-strip" inline />
-          <a href={SITE.physlib.site} className="shrink-0" aria-label="Physlib">
-            <img src={asset('images/physlib-logo.png')} alt="Physlib" width={1600} height={459} className="h-5 w-auto" />
-          </a>
         </Container>
       </div>
       <div className="bg-band text-white">
@@ -97,7 +93,7 @@ function Footer() {
       <Container className="grid gap-6 py-6 text-sm sm:grid-cols-3">
         <ul className="space-y-1">
           <li>{link('About', '/about')}</li>
-          <li>{link('Who reviews reports', '/about#maintainers')}</li>
+          <li>{link('Who reviews reports', '/about#verifiers')}</li>
           <li>{link('Submit a contribution', '/submit')}</li>
         </ul>
         <ul className="space-y-1">
@@ -107,9 +103,9 @@ function Footer() {
           <li>{link('This site on GitHub', urls.repo())}</li>
         </ul>
         <ul className="space-y-1">
-          <li>{link('Physlib', SITE.physlib.site)}</li>
-          <li>{link('Physlib on GitHub', urls.physlibRepo())}</li>
-          <li>{link('Physlib on Zulip', SITE.physlib.zulip)}</li>
+          {PROJECTS.map((p) => (
+            <li key={p.id}>{link(p.name, p.url)}</li>
+          ))}
         </ul>
       </Container>
       <Container className="border-t border-rule py-3 text-xs text-muted">

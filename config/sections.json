@@ -3,19 +3,19 @@
     "id": "review",
     "numeral": "I",
     "name": "Review",
-    "reportName": "Physlib Review Report",
-    "summary": "For reviewing other people’s pull requests to Physlib.",
-    "description": "For reviewing pull requests (proposed changes) to Physlib: checking that definitions match the physics, suggesting better statements or proofs, and helping authors get their work merged.",
+    "reportName": "Review Report",
+    "summary": "For reviewing other people’s pull requests to a project.",
+    "description": "For reviewing pull requests (proposed changes) to a project: checking that definitions and statements are correct, suggesting better statements or proofs, and helping authors get their work merged.",
     "criteria": [
-      "The reviews were on pull requests to leanprover-community/physlib and contained substantive comments, not only approvals.",
-      "The reviews improved the physics, the Lean code or the documentation of the change.",
+      "The reviews were on pull requests to the project’s repository and contained substantive comments, not only approvals.",
+      "The reviews improved the mathematics or physics, the Lean code or the documentation of the change.",
       "Links to the reviewed pull requests or review threads are given as evidence."
     ],
     "guidance": "One report usually covers several substantive reviews over a period of time. A single short review is not enough.",
     "examples": [
       "Reviewed 10 pull requests on quantum mechanics",
       "Reviewed 25 pull requests on special relativity and the Lorentz group",
-      "Reviewed 50 pull requests across Physlib over a year",
+      "Reviewed 50 pull requests across a project over a year",
       "A detailed review of the pull requests introducing the Higgs potential"
     ],
     "evidenceKinds": [
@@ -28,18 +28,18 @@
     "id": "maintenance",
     "numeral": "II",
     "name": "Maintenance",
-    "reportName": "Physlib Maintenance Report",
-    "summary": "For keeping Physlib building and up to date.",
-    "description": "For work that keeps Physlib building and usable: updating it when Lean or Mathlib release new versions, fixing what those updates break, and looking after and developing the automatic build checks (CI), linters, documentation and the issue tracker.",
+    "reportName": "Maintenance Report",
+    "summary": "For keeping a project building and up to date.",
+    "description": "For work that keeps a project building and usable: updating it when Lean or Mathlib release new versions, fixing what those updates break, and looking after and developing the automatic build checks (CI), linters, documentation and the issue tracker.",
     "criteria": [
-      "The work was maintenance of Physlib or its infrastructure, for example version updates, CI, linting, replacing deprecated lemmas, tooling or issue triage.",
+      "The work was maintenance of the project or its infrastructure, for example version updates, CI, linting, replacing deprecated lemmas, tooling or issue triage.",
       "The work was merged or otherwise adopted by the project.",
       "Links to the relevant pull requests, commits or issues are given as evidence."
     ],
     "guidance": "One report usually covers several months of regular maintenance, or one substantial piece of infrastructure work.",
     "examples": [
-      "Kept Physlib building against new versions of Lean and Mathlib for six months",
-      "Replaced deprecated Mathlib lemmas throughout Physlib",
+      "Kept a project building against new versions of Lean and Mathlib for six months",
+      "Replaced deprecated Mathlib lemmas throughout a project",
       "Set up and looked after the linters and CI checks",
       "Triaged and closed 40 issues"
     ],
@@ -54,17 +54,17 @@
     "id": "refactoring",
     "numeral": "III",
     "name": "Refactoring",
-    "reportName": "Physlib Refactoring Report",
-    "summary": "For restructuring existing Physlib code so it is simpler or more general.",
-    "description": "For changing the structure of existing Physlib code without adding new results: generalising or improving definitions, merging duplicate definitions, reorganising files, or speeding up compilation, so that later work is easier.",
+    "reportName": "Refactoring Report",
+    "summary": "For restructuring existing code in a project so it is simpler or more general.",
+    "description": "For changing the structure of existing code in a project without adding new results: generalising or improving definitions, merging duplicate definitions, reorganising files, or speeding up compilation, so that later work is easier.",
     "criteria": [
-      "The change restructured existing Physlib code rather than adding new results.",
+      "The change restructured existing code in the project rather than adding new results.",
       "The change was merged and leaves the library easier to use or extend.",
       "Links to the relevant pull requests are given as evidence, with a short account of what changed and why."
     ],
     "guidance": "One report usually covers one refactor that touched many files.",
     "examples": [
-      "Refactored tensors in Physlib to be easier to use",
+      "Refactored tensors to be easier to use",
       "Unified two competing definitions of the Lorentz group",
       "Reorganised the quantum mechanics files into a clear module structure"
     ],
@@ -79,11 +79,11 @@
     "id": "foundations",
     "numeral": "IV",
     "name": "Foundational Work",
-    "reportName": "Physlib Foundations Report",
-    "summary": "For basic foundations that other parts of Physlib build on.",
-    "description": "For setting up the basic definitions and first properties of an area of physics in Physlib, such as spacetime, tensors, quantum states or thermodynamic systems, so that other results can be stated and proved.",
+    "reportName": "Foundations Report",
+    "summary": "For basic foundations that other parts of a project build on.",
+    "description": "For setting up the basic definitions and first properties of an area in a project, such as spacetime, tensors, quantum states or thermodynamic systems, so that other results can be stated and proved.",
     "criteria": [
-      "The work introduced or substantially developed basic definitions and their elementary properties in Physlib.",
+      "The work introduced or substantially developed basic definitions and their elementary properties in the project.",
       "The work was merged and is used, or is designed to be used, by other parts of the library.",
       "Links to the relevant pull requests and modules are given as evidence."
     ],
@@ -105,11 +105,11 @@
     "id": "formalisation",
     "numeral": "V",
     "name": "Formalisation",
-    "reportName": "Physlib Formalisation Report",
-    "summary": "For adding new lemmas and definitions to Physlib or PhyslibAlpha.",
-    "description": "For adding to Physlib or PhyslibAlpha: new lemmas and definitions, and results from physics stated and proved on top of what is already there. This includes many small additions across different areas, as well as one larger result.",
+    "reportName": "Formalisation Report",
+    "summary": "For adding new lemmas, definitions and results to a project.",
+    "description": "For adding to a project: new lemmas, definitions and statements, and results stated and proved on top of what is already there. This includes many small additions across different areas, as well as one larger result.",
     "criteria": [
-      "The work added new lemmas, definitions or results to Physlib or PhyslibAlpha, rather than restructuring existing code or setting up the basic definitions of an area.",
+      "The work added new lemmas, definitions, statements or results to the project, rather than restructuring existing code or setting up the basic definitions of an area.",
       "The work was merged and follows the library’s conventions.",
       "Links to the relevant pull requests are given as evidence."
     ],
@@ -131,11 +131,11 @@
     "id": "documentation",
     "numeral": "VI",
     "name": "Documentation",
-    "reportName": "Physlib Documentation Report",
-    "summary": "For explaining Physlib: docstrings, module overviews, guides and tutorials.",
-    "description": "For making Physlib easier to understand and use: writing docstrings and module overviews, explaining the physics behind definitions, and writing guides and tutorials for newcomers.",
+    "reportName": "Documentation Report",
+    "summary": "For explaining a project: docstrings, module overviews, guides and tutorials.",
+    "description": "For making a project easier to understand and use: writing docstrings and module overviews, explaining the mathematics or physics behind definitions, and writing guides and tutorials for newcomers.",
     "criteria": [
-      "The work documented Physlib, for example docstrings, module overviews, explanations of the physics, guides or tutorials.",
+      "The work documented the project, for example docstrings, module overviews, explanations of the mathematics or physics, guides or tutorials.",
       "The documentation was merged or published, and is accurate and clear.",
       "Links to the relevant pull requests or published pages are given as evidence."
     ],
@@ -143,7 +143,7 @@
     "examples": [
       "Wrote the documentation for the Lorentz group modules",
       "Added docstrings explaining the physics throughout the quantum mechanics files",
-      "Wrote a getting-started tutorial for new Physlib contributors",
+      "Wrote a getting-started tutorial for new contributors",
       "Documented the conventions used for tensors and index notation"
     ],
     "evidenceKinds": [
@@ -156,10 +156,10 @@
     "id": "test",
     "numeral": "T",
     "name": "Test",
-    "reportName": "Physlib Test Report",
+    "reportName": "Test Report",
     "test": true,
     "summary": "For trying out the form, the review and the signing. Not a record of real work.",
-    "description": "Test submissions go through the same steps as a real submission, from the form to the pull request and the signing, so that the whole process can be tried out. They need no maintainer approval: merging the pull request is enough. Test reports are marked as tests, are not numbered, and are not listed with real reports.",
+    "description": "Test submissions go through the same steps as a real submission, from the form to the pull request and the signing, so that the whole process can be tried out. They need no approvals: a verifier’s “/accept” (or merging the pull request) is enough. Test reports are marked as tests, are not numbered, and are not listed with real reports.",
     "criteria": [
       "The submission is clearly a test and does not claim credit for real work."
     ],

@@ -7,7 +7,7 @@
  * "Review of #412: Add the Lorentz group" rather than "Review of pull request #412".
  * A title given in the submission is kept as it is.
  */
-import { EVIDENCE_KINDS, SITE, type EvidenceKind } from './config';
+import { DEFAULT_PROJECT, EVIDENCE_KINDS, type EvidenceKind } from './config';
 import type { OpenBadgeCredential } from './credential';
 import type { JsonObject } from './dataIntegrity';
 import { evidenceTitle, type Evidence, type Submission } from './submission';
@@ -31,10 +31,10 @@ export function githubRef(url: string): GitHubRef | undefined {
 
 /**
  * The title of a piece of evidence from its pull request's or issue's title, or
- * its commit's message. Links outside Physlib's repository name their repository.
+ * its commit's message. Links outside the default project's repository name their repository.
  */
 export function githubEvidenceTitle(ref: GitHubRef, kind: EvidenceKind, title: string): string {
-  const repo = `${ref.owner}/${ref.repo}`.toLowerCase() === SITE.physlib.repository.toLowerCase() ? '' : `${ref.owner}/${ref.repo}`;
+  const repo = `${ref.owner}/${ref.repo}`.toLowerCase() === DEFAULT_PROJECT.repository.toLowerCase() ? '' : `${ref.owner}/${ref.repo}`;
   const text = title.split('\n')[0].replace(/\p{Cc}+/gu, ' ').trim();
   const name =
     ref.type === 'commit'

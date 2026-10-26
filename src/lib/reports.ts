@@ -2,7 +2,7 @@
  * The index of reports that the site reads (public/data/reports.json), and the
  * ways a report is referred to: its number, citation and LinkedIn entry.
  */
-import { isTestSection, SITE, urls } from './config';
+import { isTestSection, projectsOf, SITE, urls } from './config';
 import { evidenceOf, recipientOf, sectionIdOf, titleOf, type OpenBadgeCredential } from './credential';
 import type { Submission } from './submission';
 
@@ -12,6 +12,8 @@ export interface ReportEntry {
   number: number;
   year: number;
   section: string;
+  /** Project ids, primary first. */
+  projects: string[];
   title: string;
   summary: string;
   recipient: { name: string; github?: string; orcid?: string };
@@ -26,6 +28,7 @@ export interface ReportEntry {
 export interface PendingEntry {
   slug: string;
   section: string;
+  projects: string[];
   title: string;
   recipient: { name: string; github: string };
   submittedAt: string;
@@ -72,6 +75,8 @@ export function buildReportsIndex(
         number,
         year: Number(credential.validFrom.slice(0, 4)),
         section: sectionIdOf(credential),
+        // From the submission; reports made before projects existed belong to the default project.
+        projects: projectsOf(submission ?? {}),
         title: titleOf(credential),
         summary: credential.credentialSubject.narrative ?? '',
         recipient: recipientOf(credential),
@@ -90,6 +95,7 @@ export function buildReportsIndex(
     .map(([slug, s]) => ({
       slug,
       section: s.section,
+      projects: projectsOf(s),
       title: s.title,
       recipient: { name: s.recipient.name, github: s.recipient.github },
       submittedAt: s.submittedAt,
@@ -105,14 +111,14 @@ export function buildReportsIndex(
   return { generatedAt: new Date().toISOString(), published, pending, tests };
 }
 
-/** Short reference to a report, e.g. "Physlib Contribution Report no. 3 (2026)". */
+/** Short reference to a report, e.g. "Formal Contributions Report no. 3 (2026)". */
 export function reportReference(e: Pick<ReportEntry, 'number' | 'year'>) {
   return `${SITE.reportSeries} no. ${e.number} (${e.year})`;
 }
 
 export function citationKey(e: Pick<ReportEntry, 'recipient' | 'year' | 'number'>) {
   const who = (e.recipient.github ?? e.recipient.name).toLowerCase().replace(/[^a-z0-9]/g, '');
-  return `physlib${e.year}-${who}-${e.number}`;
+  return `formalcontributions${e.year}-${who}-${e.number}`;
 }
 
 /** How to cite a report: as text (also the line for a CV) and as a BibTeX technical report. */
@@ -122,7 +128,7 @@ export function citations(c: OpenBadgeCredential, slug: string, entry?: ReportEn
   const year = c.validFrom.slice(0, 4);
   const ref = entry ? reportReference(entry) : `${SITE.reportSeries} (${year})`;
   const text = `${r.name}, “${title},” ${ref}. ${urls.report(slug)}`;
-  const bibtex = `@techreport{${entry ? citationKey(entry) : `physlib${year}-${slug}`},
+  const bibtex = `@techreport{${entry ? citationKey(entry) : `formalcontributions${year}-${slug}`},
   author      = {${r.name}},
   title       = {{${title}}},
   institution = {${SITE.title}},

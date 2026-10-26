@@ -40,17 +40,31 @@ There are currently six different sections.
 
 In the beta phase, there is also a Test section. 
 
-**Project (TODO)** 
-
-This is currently not implemented. 
+**Project** 
 
 The user then chooses a single primary project for their submission, along 
 with optional secondary projects. These work in a very similar way to 
-the ArXiv's classifications. The different projects will be listed in: 
-- list of projects (TODO): `config/projects.json`
+the ArXiv's classifications: only the verifiers of the primary project can 
+accept the submission (Part 2). The different projects are listed in: 
+- list of projects: [`config/projects.json`](config/projects.json)
 
-For each project, this file will also list the maintainers who are allowed 
-to review and accept reports for that project (Part 2). 
+For each project, this file gives its name, a one-sentence description, its 
+website, its GitHub repository and, optionally, its Zulip channel. It also 
+lists the project's verifiers: the people who can review and accept reports 
+for that project (Part 2). There is currently one project, Physlib 
+(`leanprover-community/physlib`). While there is only one, the form chooses 
+it automatically. 
+
+To add a project, add an entry to `config/projects.json`. Its `id` is what 
+submissions and links use, so it should not change later. 
+
+The project is saved in the submission as `projects`, primary first. 
+Submissions made before projects existed have no `projects`; they belong to 
+the `defaultProject` in [`config/site.json`](config/site.json) (Physlib). 
+
+The project also decides which repository pull request numbers refer to, 
+when pull requests are pasted in as evidence (below), and appears on the 
+report. 
 
 **Who did the work**
 
@@ -105,10 +119,11 @@ https://formalcontributions.com/submit?section=review&name=Ada%20Example&github=
 | Parameter | Fills in |
 | --- | --- |
 | `section` | `review`, `maintenance`, `refactoring`, `foundations`, `formalisation`, `documentation` or `test` |
+| `projects` | project ids, primary first, separated by commas, e.g. `physlib` |
 | `name`, `github`, `orcid` | who did the work |
 | `title`, `summary` | the work (URL-encoded; `%0A` for a new line) |
 | `from`, `to` | months, `YYYY-MM` |
-| `prs` | Physlib pull request numbers, separated by commas |
+| `prs` | pull request numbers in the primary project's repository (Physlib's if no project is given), separated by commas |
 | `link` | any other evidence link; repeat for several |
 
 Opening such a link replaces any draft saved in that browser, and sends 
@@ -125,23 +140,28 @@ is in [`content/submit/`](content/submit/).
 **The summary**
 
 As soon as the issue is opened, a GitHub workflow posts a summary on it for 
-the maintainers. The summary shows the submission, the section's criteria as 
-a checklist, any evidence already used in another report, and the user's 
-previous reports. 
+the verifiers. The summary shows the submission and its projects, the 
+section's criteria as a checklist, any evidence already used in another 
+report, the user's previous reports, and which verifiers can accept it. 
 - workflow: [`.github/workflows/submission-issue.yml`](.github/workflows/submission-issue.yml)
 - code for the summary: [`scripts/issue-submission.ts`](scripts/issue-submission.ts), [`scripts/lib/summary.ts`](scripts/lib/summary.ts)
 
-**Who reviews**
+**Who reviews: the verifiers**
 
-Submissions are reviewed by the maintainers listed in: 
-- list of maintainers: [`config/maintainers.json`](config/maintainers.json)
+Each project has its own verifiers, listed with the project in: 
+- list of projects and their verifiers: [`config/projects.json`](config/projects.json)
 
-**(TODO)** Once projects are added (Part 1), each project will have its own 
-maintainers, listed with the project in `config/projects.json`. Only a 
-maintainer of a submission's project will be able to accept it. 
+Only a verifier of a submission's primary project can accept it. Being a 
+verifier of a secondary project is not enough. A project with no verifiers 
+cannot accept submissions until one is added. 
+
+Each verifier is listed with their GitHub username, name, and optionally 
+their role, affiliation and numeric GitHub `id` (which stops anyone else 
+from taking over a renamed account). The About page lists the verifiers of 
+each project. 
 
 The number of approvals each report needs is `review.requiredApprovals` in 
-[`config/site.json`](config/site.json). Maintainers need no write access to 
+[`config/site.json`](config/site.json). Verifiers need no write access to 
 the repository to accept a submission. 
 
 **Reviewing a submission**
@@ -170,14 +190,16 @@ A submission is accepted, and later signed, only if:
   request that added it); 
 - the file that is accepted is exactly the submission in the issue (or 
   exactly what the pull request merged); 
-- it has enough approvals **on its final version** from listed maintainers, 
+- it has enough approvals **on its final version** from verifiers of its 
+  primary project, 
   each including the phrase "no conflict of interest". An edit to the issue 
   after an approval cancels that approval. Only each person's latest approval 
   counts; 
 - none of the approvals comes from the user, anyone named as a collaborator, 
   or whoever opened the issue or pull request. 
 
-Test submissions don't need these rules: one maintainer's `/accept` is enough. 
+Test submissions don't need these rules: one `/accept` from a verifier of its 
+project is enough. 
 - code for the rules: [`src/lib/review.ts`](src/lib/review.ts)
 
 **Acceptance**
@@ -192,7 +214,7 @@ issue. That commit starts Part 3.
 These work the same way, except that: 
 - the summary is posted by [`.github/workflows/submission-summary.yml`](.github/workflows/submission-summary.yml), 
   and [`.github/workflows/check.yml`](.github/workflows/check.yml) checks the file; 
-- a maintainer approves with an *Approve* review on the last commit, saying 
+- a verifier approves with an *Approve* review on the last commit, saying 
   "I have no conflict of interest", and merges once the approvals are in. 
   Merging without enough approvals adds the file, but it is never signed. 
 
@@ -260,7 +282,7 @@ The website is a static React site. Its main pages are:
 | `/archive` | every report (test reports in a separate box) | [`src/pages/Archive.tsx`](src/pages/Archive.tsx) |
 | `/sections`, `/sections/<id>` | the sections and their criteria | [`src/pages/Sections.tsx`](src/pages/Sections.tsx) |
 | `/contributors/<github>` | one person's reports | [`src/pages/Contributor.tsx`](src/pages/Contributor.tsx) |
-| `/about` | the purpose, the process and the maintainers | [`src/pages/About.tsx`](src/pages/About.tsx) |
+| `/about` | the purpose, the process and the verifiers of each project | [`src/pages/About.tsx`](src/pages/About.tsx) |
 | `/submit` | the submission form (Part 1) | [`src/pages/Submit.tsx`](src/pages/Submit.tsx) |
 | `/verify` | check a report (below) | [`src/pages/Verify.tsx`](src/pages/Verify.tsx) |
 | `/status` | the results of the setup check (Part 5) | [`src/pages/Status.tsx`](src/pages/Status.tsx) |
@@ -307,7 +329,8 @@ anything over the network. The tests in [`test/`](test/) check that:
 - reports pass 1EdTech's official Open Badges 3.0 JSON schema; 
 - verification rejects changed reports, unknown keys, the wrong issuer, 
   revoked reports and reports that are not yet valid; 
-- the approval rules reject non-maintainers, conflicts of interest and 
+- the approval rules reject people who are not verifiers of the project, 
+  conflicts of interest and 
   withdrawn approvals; 
 - badge images with a report inside them round-trip. 
 
@@ -400,7 +423,7 @@ settings can be checked or repeated for a fresh copy:
    store it as `SIGNING_DEPLOY_KEY` in the `signing` environment, and let 
    deploy keys bypass the ruleset. (On a personal account, GitHub does not 
    allow the GitHub Actions app itself to bypass it.) 
-5. **List the maintainers** in `config/maintainers.json`. 
+5. **List the projects and their verifiers** in `config/projects.json`. 
 6. **Push to `main`.** The workflow signs the sample report and deploys the 
    site. Without the signing key, accepted submissions stay unsigned 
    ("awaiting signature") but the site still deploys. 
@@ -408,23 +431,23 @@ settings can be checked or repeated for a fresh copy:
 
 **Before launch**
 
-- List at least two maintainers in `config/maintainers.json`, so the conflict 
-  rules can always be followed, and confirm the appointment text in 
-  `config/site.json` (`review.appointment`). 
+- List at least two verifiers for each project in `config/projects.json`, so 
+  the conflict rules can always be followed, and confirm the appointment text 
+  in `config/site.json` (`review.appointment`). 
 - Make the repository public. 
 
 **Checking the set-up**
 
 The *Setup check* workflow tests everything the site depends on, without 
 changing, signing or publishing anything. Run it by hand from the Actions tab 
-after changing settings, keys or maintainers. 
+after changing settings, keys, projects or verifiers. 
 - workflow: [`.github/workflows/setup-check.yml`](.github/workflows/setup-check.yml)
 - code for the checks: [`scripts/setup-check/`](scripts/setup-check/), one file per part (check 4.2 is the second check in `4-github-settings.ts`)
 
 | Part | Checks |
 | --- | --- |
 | 1. Tests and build | the unit tests and the site build |
-| 2. Configuration | `config/` and `CODEOWNERS`: site address, sections, maintainers, approval rules, beta label, page text |
+| 2. Configuration | `config/` and `CODEOWNERS`: site address, sections, projects and verifiers, approval rules, beta label, page text |
 | 3. Signing keys | `config/keys.json`; that `OB_SIGNING_KEY` matches the active key and signs; the DNS record |
 | 4. GitHub settings | Pages; the `signing` environment; the rules on `main`; that `SIGNING_DEPLOY_KEY` can push (without pushing anything); the workflows; the last *Sign and deploy* run |
 | 5. Submissions and signed reports | every submission is valid; why any accepted submission is unsigned; every report verifies; report numbers; revocations; the sample report |

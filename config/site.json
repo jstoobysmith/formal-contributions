@@ -1,7 +1,7 @@
 {
-  "title": "Physlib Contributions",
-  "reportSeries": "Physlib Contribution Report",
-  "subtitle": "Signed reports on reviewing, maintenance, refactoring, foundations, formalisation and documentation of Physlib",
+  "title": "Formal Contributions",
+  "reportSeries": "Formal Contributions Report",
+  "subtitle": "Signed reports on reviewing, maintenance, refactoring, foundations, formalisation and documentation of formalization projects",
   "beta": true,
   "siteUrl": "https://formalcontributions.com",
   "basePath": "/",
@@ -10,16 +10,11 @@
     "name": "formal-contributions",
     "branch": "main"
   },
-  "physlib": {
-    "repository": "leanprover-community/physlib",
-    "site": "https://physlib.io",
-    "zulip": "https://leanprover.zulipchat.com/#narrow/channel/479953-physlib",
-    "gettingStarted": "https://physlib.io/getting-started"
-  },
+  "defaultProject": "physlib",
   "issuer": {
-    "name": "Physlib Contributions",
-    "description": "An open-source community project to digitalize results from physics into Lean 4. Physlib Contributions publishes signed reports on reviewing, maintenance, refactoring, foundations, formalisation and documentation of Physlib.",
-    "url": "https://physlib.io",
+    "name": "Formal Contributions",
+    "description": "Formal Contributions publishes signed reports on reviewing, maintenance, refactoring, foundations, formalisation and documentation of formalization projects.",
+    "url": "https://formalcontributions.com",
     "image": "images/physlib-logo.png"
   },
   "dns": {
@@ -29,6 +24,6 @@
   "review": {
     "requiredApprovals": 1,
     "conflictDeclaration": "no conflict of interest",
-    "appointment": "Maintainers are appointed and removed by agreement of the existing maintainers, discussed openly on the Physlib Zulip channel. Any maintainer may step down at any time."
+    "appointment": "Verifiers are appointed and removed by agreement of the existing verifiers of their project. Any verifier may step down at any time."
   }
 }

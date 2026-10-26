@@ -1,11 +1,11 @@
 /**
- * The summary of a submission that maintainers review: shown on its pull
+ * The summary of a submission that verifiers review: shown on its pull
  * request (scripts/validate-submissions.ts) or its issue
  * (scripts/issue-submission.ts). It lists the submission, warnings about its
  * evidence, and the contributor's previous reports. Text from the submission
  * is escaped, as it comes from whoever submitted it.
  */
-import { isTestSection, SITE } from '../../src/lib/config';
+import { isTestSection, primaryProjectOf, PROJECTS } from '../../src/lib/config';
 import { evidenceOf, recipientOf, sectionIdOf, titleOf } from '../../src/lib/credential';
 import { ACCEPT_COMMAND } from '../../src/lib/issue-submission';
 import { CONFLICT_DECLARATION } from '../../src/lib/review';
@@ -14,7 +14,8 @@ import { listCredentials, listSubmissionFiles, loadSubmission, readReportNumbers
 import { lookUpEvidenceTitles, lookUpPullRequestPeople } from './evidence-titles';
 import { untitledGitHubEvidence, withEvidenceTitles } from '../../src/lib/evidence-titles';
 
-const TRUSTED = [`https://github.com/${SITE.physlib.repository}/`, new URL(SITE.physlib.zulip).origin + '/'];
+/** Links to the projects' repositories and Zulip channels are expected; anything else is pointed out. */
+const TRUSTED = [...new Set(PROJECTS.flatMap((p) => [`https://github.com/${p.repository}/`, ...(p.zulip ? [new URL(p.zulip).origin + '/'] : [])]))];
 
 export type Venue = 'pull request' | 'issue';
 
@@ -39,11 +40,11 @@ export function summaryContext() {
 
 export type SummaryContext = ReturnType<typeof summaryContext>;
 
-/** Warnings about a submission's evidence (links outside Physlib, links already used). */
+/** Warnings about a submission's evidence (links outside the projects, links already used). */
 export function evidenceWarnings(ctx: SummaryContext, submission: Submission, ownSlug?: string): string[] {
   const warnings: string[] = [];
   for (const e of submission.evidence) {
-    if (!TRUSTED.some((t) => e.url.startsWith(t))) warnings.push(`Evidence outside Physlib's GitHub and Zulip; check it by hand: <${e.url}>`);
+    if (!TRUSTED.some((t) => e.url.startsWith(t))) warnings.push(`Evidence outside the projects' GitHub and Zulip; check it by hand: <${e.url}>`);
     if (isTestSection(submission.section)) continue;
     const elsewhere = (ctx.usedIn.get(canonicalUrl(e.url)) ?? []).filter((w) => w.slug !== ownSlug);
     if (elsewhere.length) warnings.push(`<${e.url}> is already evidence for ${elsewhere.map((w) => md(w.label)).join('; ')}`);
@@ -82,7 +83,7 @@ export function submissionSummary(
       out.push(
         '',
         venue === 'issue'
-          ? `**Test submission.** No approvals are needed: when a listed maintainer comments \`${ACCEPT_COMMAND}\`, it is signed as a test report that is not numbered or listed.`
+          ? `**Test submission.** No approvals are needed: when a verifier of ${md(primaryProjectOf(submission).name)} comments \`${ACCEPT_COMMAND}\`, it is signed as a test report that is not numbered or listed.`
           : '**Test submission.** No approvals are needed: merging this pull request is enough for it to be signed, as a test report that is not numbered or listed.',
       );
     }
@@ -90,6 +91,8 @@ export function submissionSummary(
     out.push(
       '',
       submissionMarkdown(withEvidenceTitles(submission, titles), people),
+      '',
+      whoCanAccept(submission),
       '',
       previous.length
         ? `**Previous reports to @${submission.recipient.github}:** ${previous.map(({ slug, credential }) => `no. ${ctx.numbers[slug] ?? '?'} ${md(titleOf(credential))}`).join('; ')}`
@@ -113,14 +116,25 @@ export async function evidenceDetails(
   return { titles, people, warnings: missing.map((url) => `<${url}> does not exist on GitHub; check the link.`) };
 }
 
-/** What maintainers do next, at the end of the summary. */
-export function maintainerNote(venue: Venue): string {
+/**
+ * Who may accept a submission: the verifiers of its primary project. Their
+ * "@" is escaped, so they are not notified each time the summary is posted.
+ */
+export function whoCanAccept(submission: Submission): string {
+  const project = primaryProjectOf(submission);
+  return project.verifiers.length
+    ? `**Who can accept it:** the verifiers of ${md(project.name)}: ${project.verifiers.map((v) => `${md(v.name)} (${md(`@${v.github}`)})`).join(', ')}.`
+    : `**Who can accept it:** ${md(project.name)} has no verifiers yet, so this submission cannot be accepted until one is listed in \`config/projects.json\`.`;
+}
+
+/** What verifiers do next, at the end of the summary. */
+export function verifierNote(venue: Venue): string {
   const approve =
     venue === 'issue'
-      ? `To approve, comment \`${ACCEPT_COMMAND} I have ${CONFLICT_DECLARATION}\`. When enough maintainers have, the submission is accepted and signed automatically.`
+      ? `To approve, comment \`${ACCEPT_COMMAND} I have ${CONFLICT_DECLARATION}\`. When enough verifiers have, the submission is accepted and signed automatically.`
       : `To approve, submit an *Approve* review whose text includes “${CONFLICT_DECLARATION}”, then merge.`;
   return (
-    `**For maintainers.** Check each criterion against the evidence. ${approve} ` +
+    `**For verifiers.** Only verifiers of the submission's primary project can accept it. Check each criterion against the evidence. ${approve} ` +
     `Approvals from anyone credited by the submission or whoever opened this ${venue} do not count. ` +
     'You may ask for changes, or close a submission that does not clearly meet the criteria.'
   );

@@ -1,8 +1,8 @@
 /**
  * Part 6: one made-up submission, followed through every step a real one
  * takes, without touching GitHub: the form's output is validated, the
- * summary is written, the approval rules are applied with the listed
- * maintainers (for pull requests and for issues), the credential is built, signed with the real key, verified as
+ * summary is written, the approval rules are applied with the primary
+ * project's verifiers (for pull requests and for issues), the credential is built, signed with the real key, verified as
  * the site does, and baked into a badge image.
  */
 import Ajv2019 from 'ajv/dist/2019.js';
@@ -14,7 +14,7 @@ import { buildCredential, type OpenBadgeCredential } from '../../src/lib/credent
 import { bakeSvg, unbakeSvg } from '../../src/lib/baking';
 import { CONFLICT_DECLARATION, approvalDecision, issueApprovalDecision, type IssueComment, type PullRequestReview } from '../../src/lib/review';
 import { ACCEPT_COMMAND } from '../../src/lib/issue-submission';
-import { issuerDidDocument, isoSeconds, ISSUER_DID, KEYS, MAINTAINERS, SIGNING_KEY, SITE, verificationMethodId } from '../../src/lib/config';
+import { issuerDidDocument, isoSeconds, ISSUER_DID, KEYS, primaryProjectOf, SIGNING_KEY, SITE, verificationMethodId, type Verifier } from '../../src/lib/config';
 import { githubLoginFromInput, submissionMarkdown, submissionSchema, submissionSlug, type Submission } from '../../src/lib/submission';
 import { verifyCredential } from '../../src/lib/verify';
 import { readJson, ROOT } from '../lib/files';
@@ -43,7 +43,7 @@ export default definePart({
     if (!submission) return;
     const s = submission;
 
-    await check('6.2', 'Summary for maintainers', () => {
+    await check('6.2', 'Summary for verifiers', () => {
       const text = submissionMarkdown(s);
       return text.includes(s.title.slice(0, 20)) && text.includes(`@${RECIPIENT}`)
         ? pass('The summary posted on each submission issue or pull request is written.')
@@ -52,10 +52,11 @@ export default definePart({
 
     await check('6.3', 'Approval rules for pull requests', () => {
       const required = SITE.review.requiredApprovals;
-      const approvers = MAINTAINERS.slice(0, required);
-      if (approvers.length < required) return fail(`Only ${MAINTAINERS.length} maintainer(s) are listed, but ${required} approvals are needed.`, 'Add maintainers to config/maintainers.json.');
+      const project = primaryProjectOf(s);
+      const approvers = project.verifiers.slice(0, required);
+      if (approvers.length < required) return fail(`${project.name} has ${project.verifiers.length} verifier(s), but ${required} approvals are needed.`, 'Add verifiers to config/projects.json.');
       const head = 'f'.repeat(40);
-      const review = (m: (typeof MAINTAINERS)[number], body: string): PullRequestReview => ({
+      const review = (m: Verifier, body: string): PullRequestReview => ({
         state: 'APPROVED',
         user: { login: m.github, id: m.id },
         body,
@@ -68,17 +69,17 @@ export default definePart({
       const self = approvalDecision(approvers.map((m) => review(m, CONFLICT_DECLARATION)), { ...pr, author: approvers[0].github }, { ...s, recipient: { ...s.recipient, github: approvers[0].github } });
       if (!approved.ok) return fail(`Approval by ${approvers.map((m) => '@' + m.github).join(', ')} was refused: ${approved.reason}.`);
       if (undeclared.ok) return fail('An approval without the conflict declaration was accepted.');
-      if (self.ok) return fail('A maintainer could approve their own submission.');
+      if (self.ok) return fail('A verifier could approve their own submission.');
       const who = approvers.map((m) => '@' + m.github).join(', ');
       return pass(`Accepted when ${who} approve${approvers.length === 1 ? 's' : ''} with “${CONFLICT_DECLARATION}”; refused without it, and refused for their own work.`);
     });
 
     await check('6.4', 'Approval rules for submissions made as issues', () => {
       const required = SITE.review.requiredApprovals;
-      const approvers = MAINTAINERS.slice(0, required);
-      if (approvers.length < required) return fail('Not enough maintainers are listed (see 6.3).');
+      const approvers = primaryProjectOf(s).verifiers.slice(0, required);
+      if (approvers.length < required) return fail('Not enough verifiers are listed (see 6.3).');
       const at = (minute: number) => `2026-01-01T00:${String(minute).padStart(2, '0')}:00Z`;
-      const accept = (m: (typeof MAINTAINERS)[number], minute: number): IssueComment => ({
+      const accept = (m: Verifier, minute: number): IssueComment => ({
         user: { login: m.github, id: m.id },
         body: `${ACCEPT_COMMAND} I have ${CONFLICT_DECLARATION}.`,
         created_at: at(minute),
@@ -98,7 +99,7 @@ export default definePart({
       credential = buildCredential(slug, s, {
         acceptedAt: isoSeconds(),
         pullRequest: { number: 1, url: `https://github.com/${SITE.repository.owner}/${SITE.repository.name}/pull/1`, author: RECIPIENT },
-        reviewers: MAINTAINERS.slice(0, SITE.review.requiredApprovals).map((m) => m.github),
+        reviewers: primaryProjectOf(s).verifiers.slice(0, SITE.review.requiredApprovals).map((m) => m.github),
       });
       const schema = JSON.parse(readFileSync(join(ROOT, 'test', 'fixtures', 'ob_v3p0_achievementcredential_schema.json'), 'utf8'));
       const ajv = new Ajv2019({ strict: false, allErrors: true });

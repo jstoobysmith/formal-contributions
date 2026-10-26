@@ -7,7 +7,7 @@ purpose: >
   who submits, and that reports are checked and signed. Two to four sentences.
 ---
 
-**{siteTitle}** publishes short, citable reports on work for [Physlib]({physlibSite}) that papers rarely capture: reviewing,
+**{siteTitle}** publishes short, citable reports on work for formalization projects that papers rarely capture: reviewing,
 maintenance, refactoring, foundational definitions, the many smaller additions, and documentation. Contributors submit their
-own work. The Physlib maintainers check each submission in public, and accepted reports are digitally signed so that anyone
+own work. The project's verifiers check each submission in public, and accepted reports are digitally signed so that anyone
 can confirm they are genuine.

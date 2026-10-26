@@ -7,7 +7,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { isoSeconds, maintainerOf, SITE } from '../../src/lib/config';
+import { isoSeconds, primaryProjectOf, SITE, verifierOf } from '../../src/lib/config';
 import type { ReviewRecord } from '../../src/lib/credential';
 import { approvalDecision, issueApprovalDecision, type IssueComment, type PullRequestReview } from '../../src/lib/review';
 import { isAcceptComment, sameJson, submissionFromIssueBody } from '../../src/lib/issue-submission';
@@ -151,8 +151,9 @@ export async function issueReviewRecord(api: GitHubApi, repo: string, number: nu
   const comments = await api.all<IssueComment>(`/issues/${number}/comments`);
   const decision = issueApprovalDecision(comments, { author: issue.user.login, lastEditedAt: issue.lastEditedAt }, s);
   if (!decision.ok) return { refused: `${decision.reason} (issue #${number})` };
-  // Accepted when the last "/accept" from a listed maintainer on the current text was made.
-  const accepted = comments.filter((c) => isAcceptComment(c.body) && c.user && maintainerOf(c.user) && (!issue.lastEditedAt || c.created_at > issue.lastEditedAt));
+  // Accepted when the last "/accept" from a verifier of its primary project on the current text was made.
+  const project = primaryProjectOf(s);
+  const accepted = comments.filter((c) => isAcceptComment(c.body) && c.user && verifierOf(c.user, project) && (!issue.lastEditedAt || c.created_at > issue.lastEditedAt));
   const acceptedAt = accepted.map((c) => c.created_at).sort().at(-1) ?? new Date().toISOString();
   return {
     acceptedAt: isoSeconds(acceptedAt),
