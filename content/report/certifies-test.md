@@ -5,5 +5,5 @@ purpose: >
   One or two sentences saying this is a test report and not a record of real work.
 ---
 
-This is a test report, made to try out how {siteTitle} reports are submitted and signed. Test submissions need no maintainer
+This is a test report, made to try out how {siteTitle} reports are submitted and signed. Test submissions need no verifier
 approval; it is not a record of real work.

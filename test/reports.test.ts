@@ -33,7 +33,7 @@ describe('reports index', () => {
   it('keeps test reports apart: not numbered, not published, not pending', () => {
     const test = { ...exampleSubmission, section: 'test' as const, title: 'Test submission' };
     const t = buildCredential('t', test, exampleRecord) as unknown as OpenBadgeCredential;
-    expect(t.name).toBe('Physlib Test Report: Test submission');
+    expect(t.name).toBe('Test Report: Test submission');
     expect(t.description).toMatch(/Not a record of real work/);
     const index = buildReportsIndex(
       [{ slug: 'a', credential: cred('a', '2026-05-01T00:00:00Z') }, { slug: 't', credential: t }],

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { prefillParams, readPrefill, splitEvidenceLinks } from '../src/lib/prefill';
+import { PROJECTS } from '../src/lib/config';
+import { prefillParams, pullRequestRepository, readPrefill, splitEvidenceLinks } from '../src/lib/prefill';
 
 describe('links that fill in the form', () => {
   it('reads the fields from a link', () => {
@@ -35,5 +36,16 @@ describe('links that fill in the form', () => {
       prs: [7],
       links: ['https://github.com/leanprover-community/physlib/pull/7/files', 'https://zulip.example/x'],
     });
+  });
+
+  it('reads projects, primary first, and takes pull request numbers to be in the primary project', () => {
+    const [a, b] = PROJECTS;
+    if (!b) return;
+    const p = readPrefill(new URLSearchParams(`projects=${b.id},nonsense,${a.id},${b.id}&prs=5`));
+    expect(p?.projects).toEqual([b.id, a.id]);
+    expect(pullRequestRepository(p?.projects)).toBe(b.repository);
+    expect(readPrefill(prefillParams({ projects: [b.id, a.id], name: 'C' }))).toMatchObject({ projects: [b.id, a.id] });
+    // Without projects, the default project's repository (as for links made before projects existed).
+    expect(pullRequestRepository(undefined)).toBe(PROJECTS.find((x) => x.id === 'physlib')?.repository ?? a.repository);
   });
 });

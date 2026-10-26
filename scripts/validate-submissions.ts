@@ -1,5 +1,5 @@
 /**
- * Validates submission files and writes a summary for the maintainers who review them.
+ * Validates submission files and writes a summary for the verifiers who review them.
  *
  *   npm run validate                                    # every file in submissions/
  *   npm run validate -- --changed <files...>            # files changed by a pull request
@@ -15,7 +15,7 @@ import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CREDENTIALS_DIR, listSubmissionFiles, loadSubmission } from './lib/files';
 import { option, positional } from './lib/args';
-import { evidenceDetails, evidenceWarnings, maintainerNote, submissionSummary, summaryContext } from './lib/summary';
+import { evidenceDetails, evidenceWarnings, verifierNote, submissionSummary, summaryContext } from './lib/summary';
 
 const args = process.argv.slice(2);
 const changed = args.includes('--changed');
@@ -49,7 +49,7 @@ for (const path of files) {
   summary.push(...submissionSummary(ctx, { heading: `\`${file}\``, submission, errors, warnings, venue: 'pull request', titles: looked?.titles, people: looked?.people }));
 }
 
-summary.push('---', maintainerNote('pull request'));
+summary.push('---', verifierNote('pull request'));
 
 const text = summary.join('\n') + '\n';
 if (markdownOut) writeFileSync(markdownOut, text);

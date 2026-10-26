@@ -1,7 +1,7 @@
 /**
  * Submissions made as GitHub issues, with the issue form in
  * .github/ISSUE_TEMPLATE/submission.yml: no fork or pull request is needed.
- * A listed maintainer accepts one by commenting "/accept" (see review.ts);
+ * A verifier of its project accepts one by commenting "/accept" (see review.ts);
  * the Submission issue workflow then commits it, and it is signed like any other.
  */
 
@@ -9,7 +9,7 @@
 export const ISSUE_FORM = 'submission.yml';
 export const ISSUE_FIELD = 'submission';
 
-/** The comment with which a maintainer accepts a submission. */
+/** The comment with which a verifier accepts a submission. */
 export const ACCEPT_COMMAND = '/accept';
 
 export const isAcceptComment = (body?: string | null) => new RegExp(`^\\s*${ACCEPT_COMMAND}\\b`, 'i').test(body ?? '');

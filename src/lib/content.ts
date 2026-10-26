@@ -12,10 +12,8 @@ export const CONTENT_FILES = [
   'footer',
   'footer-beta',
   'home/intro',
-  'home/new-to-physlib',
-  'home/new-to-physlib-note',
   'about/purpose',
-  'about/maintainers',
+  'about/verifiers',
   'about/approval-notes',
   'about/process',
   'about/numbering',
@@ -40,15 +38,11 @@ export const PLACEHOLDERS = {
   reportSeries: SITE.reportSeries,
   issuerName: SITE.issuer.name,
   repository: urls.repo(),
-  physlibSite: SITE.physlib.site,
-  physlibZulip: SITE.physlib.zulip,
-  physlibGettingStarted: SITE.physlib.gettingStarted,
-  goodFirstIssues: urls.goodFirstIssues(),
 } satisfies Record<string, string>;
 
 /** Placeholders that only some files have, with values given where the file is shown. */
 export const LOCAL_PLACEHOLDERS: Partial<Record<ContentFile, string[]>> = {
-  'report/certifies': ['sectionPhrase'],
+  'report/certifies': ['sectionPhrase', 'projectName', 'projectDescription'],
 };
 
 /**

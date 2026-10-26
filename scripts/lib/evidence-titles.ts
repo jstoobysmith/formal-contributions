@@ -52,7 +52,7 @@ const MAX_PEOPLE_LOOKUPS = 60;
 
 /**
  * Who opened each pull request given as evidence, and who reviewed it, for the
- * maintainers' summary. Bots are left out of the reviewers.
+ * verifiers' summary. Bots are left out of the reviewers.
  */
 export async function lookUpPullRequestPeople(urls: string[], token = githubToken()): Promise<Map<string, PullRequestPeople>> {
   const people = new Map<string, PullRequestPeople>();

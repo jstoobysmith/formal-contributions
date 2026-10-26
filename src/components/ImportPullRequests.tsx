@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { EVIDENCE_KINDS, SITE, type EvidenceKind } from '../lib/config';
+import { EVIDENCE_KINDS, type EvidenceKind } from '../lib/config';
 import { canonicalUrl, parsePullRequestList, pullRequestUrl } from '../lib/submission';
 import { buttonClass, inputClass } from './ui';
-
-const prUrl = (n: number) => pullRequestUrl(SITE.physlib.repository, n);
 
 /**
  * Adds many pull requests to the evidence at once: the contributor pastes
@@ -11,10 +9,13 @@ const prUrl = (n: number) => pullRequestUrl(SITE.physlib.repository, n);
  * Their titles are added by the workflows, not looked up here.
  */
 export function ImportPullRequests({
+  repo,
   kind,
   existingUrls,
   onAdd,
 }: {
+  /** The repository the pull requests are in ("owner/name"): the primary project's. */
+  repo: string;
   /** The kind given to imported links (the section's usual one: "Pull request review" in Review). */
   kind: EvidenceKind;
   existingUrls: string[];
@@ -23,8 +24,9 @@ export function ImportPullRequests({
   const [text, setText] = useState('');
   const [message, setMessage] = useState<string>();
 
+  const prUrl = (n: number) => pullRequestUrl(repo, n);
   const add = () => {
-    const { numbers, invalid } = parsePullRequestList(text, SITE.physlib.repository);
+    const { numbers, invalid } = parsePullRequestList(text, repo);
     const listed = new Set(existingUrls.map(canonicalUrl));
     const fresh = numbers.filter((n) => !listed.has(canonicalUrl(prUrl(n))));
     const already = numbers.filter((n) => !fresh.includes(n));
@@ -32,7 +34,7 @@ export function ImportPullRequests({
       [
         fresh.length ? `Added ${fresh.length} pull request${fresh.length === 1 ? '' : 's'}.` : 'Nothing new to add.',
         already.length ? `Already listed: ${already.map((n) => `#${n}`).join(', ')}.` : '',
-        invalid.length ? `Not recognised: ${invalid.slice(0, 5).join(', ')}${invalid.length > 5 ? ', …' : ''} (use numbers, or links to ${SITE.physlib.repository} pull requests).` : '',
+        invalid.length ? `Not recognised: ${invalid.slice(0, 5).join(', ')}${invalid.length > 5 ? ', …' : ''} (use numbers, or links to ${repo} pull requests).` : '',
       ]
         .filter(Boolean)
         .join(' '),
@@ -48,7 +50,7 @@ export function ImportPullRequests({
         Import pull requests
       </label>
       <p className="text-xs text-muted">
-        Numbers or links of pull requests to {SITE.physlib.repository}, separated by commas, e.g. <span className="font-mono">412, 418, #430</span>.
+        Numbers or links of pull requests to {repo}, separated by commas, e.g. <span className="font-mono">412, 418, #430</span>.
         Each is added below as a “{EVIDENCE_KINDS[kind]}”. Their titles are added automatically.
       </p>
       <div className="mt-2 flex gap-2">

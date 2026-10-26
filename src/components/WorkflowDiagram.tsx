@@ -58,11 +58,11 @@ function stages(): Stage[] {
       body: 'An automatic check reads the submission and posts a summary on the issue: the criteria to check, warnings about the evidence, and the contributor’s previous reports.',
     },
     {
-      who: 'Maintainers',
+      who: 'Verifiers',
       title: 'Review in public',
       body: (
         <>
-          They check the evidence on the issue and may ask for changes. A maintainer who is not involved accepts it by commenting “
+          They check the evidence on the issue and may ask for changes. A verifier of its project who is not involved accepts it by commenting “
           {ACCEPT_COMMAND} {SITE.review.conflictDeclaration}”.
         </>
       ),
@@ -94,7 +94,7 @@ function stages(): Stage[] {
           <>
             Stored only as the secret {code('OB_SIGNING_KEY')} in the same “signing” environment, which only workflows on the main
             branch can use. It is never in the repository or on this site, and once stored no one can read it back, not even the
-            maintainers.
+            people who run this site.
           </>
         ),
       },

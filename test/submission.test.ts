@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalUrl, evidenceTitle, fitsSlug, parsePullRequestList, pullRequestPeople, formatIssues, githubLoginFromInput, guessEvidenceKind, md, normaliseUrl, submissionMarkdown, submissionSchema, submissionSlug, validOrcid } from '../src/lib/submission';
+import { PROJECTS } from '../src/lib/config';
+import { canonicalUrl, evidenceTitle, fitsSlug, newSubmissionSchema, parsePullRequestList, pullRequestPeople, formatIssues, githubLoginFromInput, guessEvidenceKind, md, normaliseUrl, submissionMarkdown, submissionSchema, submissionSlug, validOrcid } from '../src/lib/submission';
 import { loadSubmission } from '../scripts/lib/files';
 import { exampleSubmission } from './fixtures/example';
 
@@ -39,6 +40,18 @@ describe('submission schema', () => {
 
   it('requires the period to end after it starts', () => {
     expect(errorsFor({ ...exampleSubmission, period: { from: '2026-05', to: '2026-01' } })['period.to']).toBeDefined();
+  });
+
+  it('takes projects, primary first: known ones, each once; files made before projects may leave them out', () => {
+    const [a, b] = PROJECTS;
+    expect(errorsFor({ ...exampleSubmission, projects: [a.id] })).toEqual({});
+    if (b) expect(errorsFor({ ...exampleSubmission, projects: [b.id, a.id] })).toEqual({});
+    expect(errorsFor({ ...exampleSubmission, projects: ['no-such-project'] })['projects.0']).toBeDefined();
+    expect(errorsFor({ ...exampleSubmission, projects: [a.id, a.id] }).projects).toBeDefined();
+    expect(errorsFor({ ...exampleSubmission, projects: [] }).projects).toBeDefined();
+    // The form requires a project for new submissions.
+    expect(newSubmissionSchema.safeParse(exampleSubmission).success).toBe(false);
+    expect(newSubmissionSchema.safeParse({ ...exampleSubmission, projects: [a.id] }).success).toBe(true);
   });
 });
 

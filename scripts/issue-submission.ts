@@ -2,7 +2,7 @@
  * Submissions made as GitHub issues (see src/lib/issue-submission.ts), run by
  * the "Submission issue" workflow with the event in GITHUB_EVENT_PATH:
  *
- *   tsx scripts/issue-submission.ts summary   # issue opened or edited: post the summary for maintainers
+ *   tsx scripts/issue-submission.ts summary   # issue opened or edited: post the summary for verifiers
  *   tsx scripts/issue-submission.ts accept    # "/accept" comment: if the rules are met, write the submission file
  *
  * The issue's text is untrusted: it is only ever parsed as JSON and validated,
@@ -17,7 +17,7 @@ import { isAcceptComment, submissionFromIssueBody } from '../src/lib/issue-submi
 import { formatIssues, md, submissionSchema, submissionSlug, type Submission } from '../src/lib/submission';
 import { freeSlug, ISSUE_SUBMISSIONS_FILE, readIssueSubmissions, ROOT, SUBMISSIONS_DIR, writeJson } from './lib/files';
 import { fetchIssue, githubApi, issueReviewRecord } from './lib/review-record';
-import { evidenceDetails, evidenceWarnings, maintainerNote, submissionSummary, summaryContext } from './lib/summary';
+import { evidenceDetails, evidenceWarnings, verifierNote, submissionSummary, summaryContext } from './lib/summary';
 
 const command = process.argv[2];
 const repo = process.env.GITHUB_REPOSITORY ?? `${SITE.repository.owner}/${SITE.repository.name}`;
@@ -71,7 +71,7 @@ async function summary() {
     '',
     ...submissionSummary(ctx, { heading: submission ? md(submission.title) : 'Submission', submission, errors, warnings, venue: 'issue', titles: looked?.titles, people: looked?.people }),
     '---',
-    maintainerNote('issue'),
+    verifierNote('issue'),
   ].join('\n');
 
   // Update the earlier summary if there is one.
@@ -99,7 +99,7 @@ async function accept() {
   // The same check the signing workflow makes before signing.
   const record = await issueReviewRecord(api, repo, number, submission);
   if ('refused' in record) {
-    // Explained to maintainers; others' "/accept" comments are simply not counted.
+    // Explained to verifiers; others' "/accept" comments are simply not counted.
     console.log(`Not accepted yet: ${record.refused}`);
     return comment(`Not accepted yet: ${md(record.refused.replace(/ \(issue #\d+\)$/, ''))}.`);
   }

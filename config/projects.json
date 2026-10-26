@@ -1,0 +1,19 @@
+[
+  {
+    "id": "physlib",
+    "name": "Physlib",
+    "description": "A library of physics formalised in the Lean 4 proof assistant.",
+    "url": "https://physlib.io",
+    "repository": "leanprover-community/physlib",
+    "zulip": "https://leanprover.zulipchat.com/#narrow/channel/479953-physlib",
+    "verifiers": [
+      {
+        "github": "jstoobysmith",
+        "name": "Joseph Tooby-Smith",
+        "affiliation": "University of Bath",
+        "role": "Maintainer of Physlib",
+        "id": 72603918
+      }
+    ]
+  }
+]

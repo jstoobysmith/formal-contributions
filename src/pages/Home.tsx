@@ -12,20 +12,20 @@ export default function Home() {
   const published = reports.status === 'ready' ? reports.data.published : [];
 
   return (
-    <Container className="grid gap-x-10 gap-y-8 lg:grid-cols-[1fr_16rem]">
-      <div className="order-1 min-w-0 lg:col-start-1 lg:row-start-1">
+    <Container className="grid gap-y-8">
+      <div className="min-w-0">
         <h1 className="sr-only">{SITE.title}</h1>
         <Content file="home/intro" className="max-w-3xl font-serif text-[1.0625rem] leading-relaxed" />
         <p className="mt-3 text-sm">
           <Link to="/submit" className="font-bold">
             Submit a contribution
           </Link>{' '}
-          · <Link to="/about">How it works</Link> · <Link to="/about#maintainers">Who reviews reports</Link> ·{' '}
+          · <Link to="/about">How it works</Link> · <Link to="/about#verifiers">Who reviews reports</Link> ·{' '}
           <Link to="/verify">Check a report</Link>
         </p>
       </div>
 
-      <div className="order-3 min-w-0 lg:col-start-1 lg:row-start-2">
+      <div className="min-w-0">
         <h2 className="border-b border-rule pb-1 font-serif text-xl font-bold">Sections</h2>
         <ul className="mt-2 space-y-2">
           {SECTIONS.map((s) => {
@@ -62,16 +62,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* On phones the newcomer panel follows the introduction; on wide screens it sits on the right. */}
-      <aside className="order-2 space-y-4 text-sm lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
-        <div className="panel">
-          <div className="panel-title">New to Physlib?</div>
-          <div className="space-y-2 px-3 py-2">
-            <Content file="home/new-to-physlib" />
-            <Content file="home/new-to-physlib-note" className="text-xs text-muted" />
-          </div>
-        </div>
-      </aside>
     </Container>
   );
 }

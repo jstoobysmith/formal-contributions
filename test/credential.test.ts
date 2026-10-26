@@ -5,7 +5,7 @@ import addFormats from 'ajv-formats';
 
 import { buildCredential, evidenceOf, rehomeCredential, reviewParticipants, sectionIdOf, slugOf, titleOf, type OpenBadgeCredential } from '../src/lib/credential';
 import { generateKeyPair, sign } from '../src/lib/dataIntegrity';
-import { ISSUER_DID, SITE_URL, verificationMethodId } from '../src/lib/config';
+import { DEFAULT_PROJECT, ISSUER_DID, PROJECTS, SITE_URL, verificationMethodId } from '../src/lib/config';
 import { exampleRecord, exampleSubmission } from './fixtures/example';
 
 const schema = JSON.parse(readFileSync(new URL('./fixtures/ob_v3p0_achievementcredential_schema.json', import.meta.url), 'utf8'));
@@ -81,5 +81,19 @@ describe('Open Badges 3.0 credential', () => {
   it('names collaborators in the description', () => {
     const vc = buildCredential('x', { ...exampleSubmission, collaborators: [{ github: 'b', name: 'Bea Two' }] }, exampleRecord);
     expect(vc.description).toContain('joint work with Bea Two');
+  });
+
+  it('names its projects, primary first, in the description and the tags', () => {
+    const tags = (vc: Record<string, unknown>) => (vc as unknown as { credentialSubject: { achievement: { tag: string[] } } }).credentialSubject.achievement.tag;
+    // No projects: the default project.
+    const plain = buildCredential('x', exampleSubmission, exampleRecord);
+    expect(plain.description).toContain(`on work for ${DEFAULT_PROJECT.name} by Ada Example`);
+    expect(tags(plain)[0]).toBe(DEFAULT_PROJECT.name);
+    const [a, b] = PROJECTS;
+    if (!b) return;
+    const both = buildCredential('x', { ...exampleSubmission, projects: [b.id, a.id] }, exampleRecord);
+    expect(both.description).toContain(`on work for ${b.name} and ${a.name} by`);
+    expect(tags(both).slice(0, 2)).toEqual([b.name, a.name]);
+    expect(validateOb3(both)).toBe(true);
   });
 });
