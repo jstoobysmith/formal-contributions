@@ -98,9 +98,9 @@
   "proof": {
     "type": "DataIntegrityProof",
     "cryptosuite": "eddsa-rdfc-2022",
-    "created": "2026-10-26T09:47:50Z",
+    "created": "2026-10-26T09:48:34Z",
     "verificationMethod": "did:web:formalcontributions.com#key-2",
     "proofPurpose": "assertionMethod",
-    "proofValue": "z5TixSP43xFEVuKq9gxXMY5PbpiSdUUoW4kLSZB6yhCPBp2RQbmf7hesMsiPQMAcZqTm3f6vMpjpHzrAggAXxjCzL"
+    "proofValue": "z2dPBqT5z2X1Ndtf38dTaWSHAjmxrE1hgGCqwW4dTX5q8Tdv6WR7Y8Deu9ek1LC9pyFti2tNhqAa7pjduNjGiW8Gv"
   }
 }
