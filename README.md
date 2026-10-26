@@ -1,133 +1,102 @@
-# Physlib Contributions
+# Formal Contributions
 
-**Short, citable, signed reports on the work that keeps formal physics standing.**
+> As we see AI transforming the way that credit is given in academia, Formal Contributions is a site for recording reports of the valuable work put in to grow, and maintain the formalization eco-system. Every report is independently verified, and can be cited on CVs, papers, or grant applications. 
 
-Physlib Contributions publishes short reports, much like technical reports, on six
-kinds of contribution to [Physlib](https://physlib.io) that rarely lead to a
-publication:
+## How the site works 
+
+The site is split into five distinct parts. 
+1. The submission form (this is what authors see and interact with). 
+2. The review and acceptance of submissions. 
+3. The deployment and signing. 
+4. The website display and ability to verify a report. 
+5. The hosting of the website and the keys. 
+
+Everything happens in public on GitHub. The only things that are hidden are 
+the two secret keys (Part 5).
+
+### Part 1: Submissions 
+
+Submissions take place through a form: 
+- hosted at: site-url/submit
+- submission form: [`src/pages/Submit.tsx`](src/pages/Submit.tsx). 
+
+**Sections** 
+
+In the first part of the form the user chooses which section they 
+want to associate their report with. The different sections 
+are defined in: 
+- definitions of sections: [`config/sections.json`](config/sections.json)
+
+There are currently six different sections. 
 
 | Section | Report | For |
 | --- | --- | --- |
-| I | Physlib Review Report | Reviewing pull requests |
-| II | Physlib Maintenance Report | Version bumps, CI, tooling, triage |
-| III | Physlib Refactoring Report | Generalising, unifying, reorganising |
-| IV | Physlib Foundations Report | Core definitions other results build on |
-| V | Physlib Formalisation Report | New lemmas, definitions and results, including many small additions |
-| VI | Physlib Documentation Report | Docstrings, module overviews, guides and tutorials |
+| I |  Review Report | Reviewing pull requests |
+| II |  Maintenance Report | Version bumps, CI, tooling, triage |
+| III |  Refactoring Report | Generalising, unifying, reorganising |
+| IV |  Foundations Report | Core definitions other results build on |
+| V |  Formalisation Report | New lemmas, definitions and results, including many small additions |
+| VI |  Documentation Report | Docstrings, module overviews, guides and tutorials |
 
-For trying the whole process out, the form also has a **Test** section
-(`/submit?section=test`). It fills in every field except the GitHub username
-and ORCID iD. Test submissions need no approvals: once a maintainer accepts
-one, it is signed like a real one, but its report says it is a test, is not
-numbered, and is listed only in a "Test reports" box on the archive page.
+In the beta phase, there is also a Test section. 
 
-Every step happens on GitHub:
+**Project (TODO)** 
 
-| Step | How |
-| --- | --- |
-| Submission | An issue opened with the form on the site, which fills in the submission; no fork is needed. (A pull request adding `submissions/<name>.json` also works.) |
-| Review | Maintainers review the issue in public |
-| Acceptance | Maintainers comment `/accept I have no conflict of interest`; a workflow checks the rules and commits `submissions/<name>.json` |
-| Signing | A GitHub workflow signs it as an **Open Badges 3.0** credential using the `OB_SIGNING_KEY` secret |
-| Trust | The Ed25519 signing key is published as a `did:web` DID document and, later, in the physlib.io DNS |
+This is currently not implemented. 
 
-The design follows [myopenbadge](https://github.com/saiyam1814/myopenbadge): a
-static React site, with GitHub as the only source of truth. Unlike myopenbadge,
-contributors open the pull requests themselves, and credentials are
-cryptographically signed with an OB 3.0 Data Integrity proof, not merely hosted.
+The user then chooses a single primary project for their submission, along 
+with optional secondary projects. These work in a very similar way to 
+the ArXiv's classifications. The different projects will be listed in: 
+- list of projects (TODO): `config/projects.json`
 
-## How it fits together
+For each project, this file will also list the maintainers who are allowed 
+to review and accept reports for that project (Part 2). 
 
-```
- contributor                      reports repository (GitHub)                        anyone
- ───────────                      ───────────────────────────                       ──────
- /submit form ──issue──▶ submission-issue.yml: summary
-                                   │
-                maintainers review; comment "/accept …"
-                                   │
-                submission-issue.yml: check approvals, commit submissions/x.json
-                (or: a pull request adding it, reviewed and merged; check.yml)
-                                   │
-                  sign-and-deploy.yml (push to main, "signing" environment)
-                  ├─ scripts/sign.ts: check approvals (src/lib/review.ts),
-                  │  build the OB 3.0 credential, sign with OB_SIGNING_KEY,
-                  │  assign the next report number
-                  ├─ commit public/credentials/x.json, data/report-numbers.json
-                  └─ build & deploy site to GitHub Pages ───▶ /reports/x
-                                                               checked in the browser
-                                                               against /did.json
-```
+**Who did the work**
 
-**Configuration** (edited by hand, except `keys.json`)
+The user gives their full name, their GitHub username and, optionally, their 
+ORCID iD. These are shown on the report. The GitHub username matters: the 
+submission must be sent from that GitHub account (Part 2). 
 
-| File | Contents |
-| --- | --- |
-| `config/site.json` | site URL, repository, issuer profile, DNS name, number of approvals required |
-| `config/sections.json` | the six sections (names, criteria, guidance, examples), and the test section |
-| `config/maintainers.json` | who may approve reports (names are shown on the site) |
-| `config/keys.json` | public signing keys and their status (written by `npm run keygen`) |
-| `config/revocations.json` | revoked reports |
+If the work was done jointly, the user can name up to ten collaborators. 
+Each collaborator gets their own report only if they submit one themselves. 
 
-**Page text** (edited by hand): `content/` holds the main blocks of text on
-the site as Markdown, one file each, with `{placeholders}` for values from
-`config/`. See `content/README.md` for which file appears where.
+**The work**
 
-**Records** (written by the signing workflow; never edit by hand)
+The user gives a title, a short summary of what was done and why it mattered, 
+and, optionally, the months the work started and finished. 
 
-| Path | Contents |
-| --- | --- |
-| `submissions/` | accepted submissions, one JSON file each (added by pull requests) |
-| `public/credentials/` | the signed credentials |
-| `data/report-numbers.json` | the permanent number of each report |
-| `public/specimen.json` | the sample report, signed from `examples/specimen.submission.json` |
+**Evidence**
 
-**Code**
+The user gives links to the work itself: pull requests, reviews, commits, 
+modules, Zulip threads and so on. Many pull requests can be pasted at once. 
+The user only gives links, not titles: the titles of GitHub links are looked 
+up automatically later (Part 3). 
+- pasting many pull requests: [`src/components/ImportPullRequests.tsx`](src/components/ImportPullRequests.tsx)
+- the kinds of evidence each section allows: `evidenceKinds` in [`config/sections.json`](config/sections.json)
 
-| Path | Contents |
-| --- | --- |
-| `src/lib/` | shared by the site and the scripts, no browser APIs (checked by `tsconfig.node.json`): config, submission schema, credential builder, `eddsa-rdfc-2022` signing (`dataIntegrity.ts`), verification, approval rules, reports index |
-| `src/site/` | browser-only helpers: data loading, opening pull requests, the submission draft |
-| `src/components/`, `src/pages/` | the React site |
-| `scripts/` | `sign`, `validate`, `verify`, `keygen`, `static` (generates `did.json`, the reports index and other files under `public/`) |
-| `scripts/setup-check/` | the setup check (see "Checking the set-up"): one file per numbered part |
-| `test/` | one test file per module in `src/lib/` |
+**Sending**
 
-## Commands
+The last step sends the submission to GitHub. The form opens a new GitHub 
+issue in this repository with the submission already filled in, and the user 
+just clicks *Create*. No fork is needed. 
+- sending it as an issue: [`src/components/SendOnGitHub.tsx`](src/components/SendOnGitHub.tsx), [`src/site/github.ts`](src/site/github.ts)
+- the GitHub issue form it lands in: [`.github/ISSUE_TEMPLATE/submission.yml`](.github/ISSUE_TEMPLATE/submission.yml)
 
-```bash
-npm install
-npm run dev          # local site at http://localhost:5173/
-npm test             # unit tests (see "Standards and testing")
-npm run build        # static site in dist/
+For people who prefer pull requests, the form can instead open a pull request 
+that adds the submission as a file under [`submissions/`](submissions/). 
 
-npm run validate                                          # check every submission
-npm run sign -- --key .keys/key-1.json --no-review-check  # sign locally, for testing only
-npm run verify -- public/specimen.json --local            # check any credential (file or URL)
-npm run keygen                                            # new signing key (see below)
-npm run setup-check                                       # check the whole set-up (see below)
-npm run setup-check -- --json public/data/status.json     # also preview the results on /status
-python3 scripts/draw-badges.py                            # redraw the section badges
-```
+What a submission contains, and the checks on it, are defined in: 
+- submission format: [`src/lib/submission.ts`](src/lib/submission.ts)
 
-## Evidence titles
+While the user fills in the form, a draft is saved in their browser 
+([`src/site/useSubmissionDraft.ts`](src/site/useSubmissionDraft.ts)). 
 
-Contributors only give links; they do not type titles. For links to GitHub
-pull requests, issues and commits (in any repository), the workflows look up
-the title, with the token GitHub gives them (1,000 calls an hour), and the
-report shows it, e.g. "Review of #412: Add the Lorentz group". The submission
-summary shows the same titles, and warns about links to pull requests that do
-not exist. A title already in a submission is kept.
+**Links that fill in the form**
 
-Each *Sign and deploy* run also gives titles to signed reports whose GitHub
-evidence still has its automatic name (such as "Pull request #3"), and signs
-them again; nothing else in them changes. The code is in
-`src/lib/evidence-titles.ts` and `scripts/lib/evidence-titles.ts`.
-
-## Links that fill in the form
-
-A link to `/submit` can fill in the form, so you can send someone a submission
-that is ready to check and send from their own account. Build one with
-*Copy a link to this form* on the form, or by hand:
+A link to `/submit` can fill in the form, so you can send someone a submission 
+that is ready to check and send from their own account. Make one with *Copy a 
+link to this form* on the form, or by hand: 
 
 ```
 https://contributions.physlib.io/submit?section=review&name=Ada%20Example&github=ada&title=Reviewed%2010%20pull%20requests%20on%20quantum%20mechanics&prs=1749,1747,1744
@@ -142,205 +111,363 @@ https://contributions.physlib.io/submit?section=review&name=Ada%20Example&github
 | `prs` | Physlib pull request numbers, separated by commas |
 | `link` | any other evidence link; repeat for several |
 
-Opening such a link replaces any draft saved in that browser, says that the
-form was filled in from a link, and sends nothing. The code is in
-`src/lib/prefill.ts`.
+Opening such a link replaces any draft saved in that browser, and sends 
+nothing. 
+- code for these links: [`src/lib/prefill.ts`](src/lib/prefill.ts)
 
-## Rules for approving reports
+**Text on the form**
 
-`src/lib/review.ts` and `scripts/sign.ts` sign a report only if:
+The text on the form page (the introduction, "What happens next" and so on) 
+is in [`content/submit/`](content/submit/). 
 
-- it was submitted by the contributor it credits: they opened its issue, or
-  the pull request that last changed it, which was merged into `main`;
-- the file on `main` is exactly the submission in the issue, or exactly what
-  that pull request merged;
-- it has at least `review.requiredApprovals` (in `config/site.json`) approvals
-  **on its final version** from people in `config/maintainers.json` (matched
-  by numeric GitHub id where one is given), each including the phrase in
-  `review.conflictDeclaration` ("no conflict of interest"). On an issue, an
-  approval is a comment starting `/accept`; an edit to the issue afterwards
-  voids it. On a pull request, it is an *Approve* review on its last commit;
-- none of those approvals comes from the recipient, anyone named as joint
-  work or whoever opened the issue or pull request, and none of them merged
-  it.
+### Part 2: Review and acceptance 
 
-The *Submission issue* workflow checks the same rules before it commits an
-accepted submission (`scripts/issue-submission.ts`), and records the issue in
-`data/issue-submissions.json`; `scripts/sign.ts` checks them again before
-signing. Maintainers need no write access to accept a submission on an issue.
+**The summary**
 
-Test submissions (the test section) are exempt from these rules: a
-maintainer's `/accept` (or merging the pull request) is enough. Their reports
-say they are tests, and are not numbered or listed with real reports.
+As soon as the issue is opened, a GitHub workflow posts a summary on it for 
+the maintainers. The summary shows the submission, the section's criteria as 
+a checklist, any evidence already used in another report, and the user's 
+previous reports. 
+- workflow: [`.github/workflows/submission-issue.yml`](.github/workflows/submission-issue.yml)
+- code for the summary: [`scripts/issue-submission.ts`](scripts/issue-submission.ts), [`scripts/lib/summary.ts`](scripts/lib/summary.ts)
 
-Only each person's latest approval counts. A refused submission is reported as
-an error in the workflow run; re-running it after more approvals signs it.
+**Who reviews**
 
-## Reviewing a submission
+Submissions are reviewed by the maintainers listed in: 
+- list of maintainers: [`config/maintainers.json`](config/maintainers.json)
 
-`submission-issue.yml` (for issues) and `submission-summary.yml` (for pull
-requests) post a summary on each submission: the submission, the section's
-criteria as a checklist, any evidence already used in another report, and the
-contributor's previous reports.
+**(TODO)** Once projects are added (Part 1), each project will have its own 
+maintainers, listed with the project in `config/projects.json`. Only a 
+maintainer of a submission's project will be able to accept it. 
 
-1. Open each evidence link and tick the criteria. "Substantive" means the
-   comments or changes affected the physics, the Lean code or the documentation.
-2. If the work is better split across sections, or several small submissions
-   would be better as one, say so and ask for changes.
-3. To approve an issue, comment `/accept I have no conflict of interest`.
-   (On a pull request, submit an *Approve* review saying "I have no conflict
-   of interest", and merge once the approvals are in.) Do not approve if you
-   supervise, co-authored the work with, or work closely with the recipient.
-4. When the required approvals are in, the submission is accepted, the issue
-   closed, and the report signed within minutes. If the contributor edits the
-   issue after you accept, accept it again.
+The number of approvals each report needs is `review.requiredApprovals` in 
+[`config/site.json`](config/site.json). Maintainers need no write access to 
+the repository to accept a submission. 
 
-To decline, close the issue or pull request with a short, kind note, for example:
+**Reviewing a submission**
+
+1. Open each evidence link and tick the criteria. "Substantive" means the 
+   comments or changes affected the physics, the Lean code or the documentation. 
+2. If the work is better split across sections, or several small submissions 
+   would be better as one, say so and ask for changes. 
+3. To approve, comment `/accept I have no conflict of interest` on the issue. 
+   Do not approve if you supervise, co-authored the work with, or work closely 
+   with the user. 
+4. When the required approvals are in, the submission is accepted, the issue 
+   is closed, and the report is signed within minutes. If the user edits the 
+   issue after you accept, accept it again. 
+
+To decline, close the issue with a short, kind note, for example: 
 
 > Thank you for submitting this. We don't think it meets the criteria for
 > this section yet (in particular, …). That is not a judgement on the value
 > of the work, and you are welcome to submit again later.
 
-## Before launch
+**Rules for approving reports**
 
-- List at least two maintainers in `config/maintainers.json`, so the conflict
-  rules can always be followed, and confirm the appointment text in
-  `config/site.json` (`review.appointment`).
-- Move to a physlib.io address and the permanent key (see below).
-- Make the repository public.
+A submission is accepted, and later signed, only if: 
+- it was sent by the person it credits: they opened its issue (or the pull 
+  request that added it); 
+- the file that is accepted is exactly the submission in the issue (or 
+  exactly what the pull request merged); 
+- it has enough approvals **on its final version** from listed maintainers, 
+  each including the phrase "no conflict of interest". An edit to the issue 
+  after an approval cancels that approval. Only each person's latest approval 
+  counts; 
+- none of the approvals comes from the user, anyone named as a collaborator, 
+  or whoever opened the issue or pull request. 
 
-## Setting up the repository
+Test submissions don't need these rules: one maintainer's `/accept` is enough. 
+- code for the rules: [`src/lib/review.ts`](src/lib/review.ts)
 
-The site has not been deployed yet. To go live:
+**Acceptance**
 
-1. **Create the GitHub repository** given in `config/site.json` (currently
-   `jstoobysmith/formal-contributions`) and push this code. If you use a
-   different owner or name, also update `siteUrl` and `basePath`.
-2. **Enable Pages:** Settings → Pages → Source: *GitHub Actions*.
-3. **Create the `signing` environment** (Settings → Environments), restrict
-   it to the `main` branch, and store the key there. A temporary key
-   (`key-1`) has already been generated; its secret half is in the
-   git-ignored `.keys/key-1.json`:
-   ```bash
-   gh secret set OB_SIGNING_KEY --env signing --repo jstoobysmith/formal-contributions < .keys/key-1.json
-   rm .keys/key-1.json   # once the secret is stored
-   ```
-4. **Protect `main`** with a ruleset: require pull requests with review from
-   code owners (`.github/CODEOWNERS` covers everything that runs with the key
-   or is signed with it), dismiss stale approvals, and require approval of the
-   most recent push. The signing workflow commits signed reports to `main`
-   using a write **deploy key** stored as `SIGNING_DEPLOY_KEY` in the `signing`
-   environment; let deploy keys bypass the ruleset. (On a personal account,
-   GitHub does not allow the GitHub Actions app itself as a bypass actor.)
-   The signing script also ignores approvals that are not on a pull request's
-   final commit.
-5. **List the maintainers** in `config/maintainers.json`.
-6. Push to `main`. The workflow signs the specimen report and deploys the site.
-7. **Run the setup check** (Actions → *Setup check* → *Run workflow*) and fix
-   anything it reports.
+When the rules are met, the workflow commits the submission to 
+[`submissions/`](submissions/) on `main`, records which issue it came from in 
+[`data/issue-submissions.json`](data/issue-submissions.json), and closes the 
+issue. That commit starts Part 3. 
 
-Without the secret, merged submissions stay unsigned ("awaiting signature")
-and the site still deploys.
+**Submissions made as pull requests**
 
-## Checking the set-up
+These work the same way, except that: 
+- the summary is posted by [`.github/workflows/submission-summary.yml`](.github/workflows/submission-summary.yml), 
+  and [`.github/workflows/check.yml`](.github/workflows/check.yml) checks the file; 
+- a maintainer approves with an *Approve* review on the last commit, saying 
+  "I have no conflict of interest", and merges once the approvals are in. 
+  Merging without enough approvals adds the file, but it is never signed. 
 
-The **Setup check** workflow (`.github/workflows/setup-check.yml`, run by hand
-from the Actions tab) tests everything the site depends on, without changing,
-signing or publishing anything. Run it after changing settings, keys or
-maintainers, and before launch. Its results are on the run's summary page, and
-failures and warnings are also shown as annotations there.
+### Part 3: Deployment and signing 
 
-The checks are grouped into seven numbered parts, one file each in
-`scripts/setup-check/`. Check 4.2 is the second check in
-`4-github-settings.ts`.
+Every new commit on `main` starts the *Sign and deploy* workflow: 
+- workflow: [`.github/workflows/sign-and-deploy.yml`](.github/workflows/sign-and-deploy.yml)
 
-| Part | Checks |
+It does three things. 
+
+**1. Signing**
+
+For each accepted submission that has no report yet, it: 
+- checks the rules of Part 2 again; 
+- looks up the titles of its GitHub links (e.g. "Review of #412: Add the 
+  Lorentz group"); 
+- turns it into a report, an **Open Badges 3.0** credential; 
+- gives it the next report number (test reports get no number); 
+- signs it with the secret signing key (Part 5). 
+- code for signing: [`scripts/sign.ts`](scripts/sign.ts), [`src/lib/credential.ts`](src/lib/credential.ts), [`src/lib/dataIntegrity.ts`](src/lib/dataIntegrity.ts)
+- code for looking up titles: [`src/lib/evidence-titles.ts`](src/lib/evidence-titles.ts), [`scripts/lib/evidence-titles.ts`](scripts/lib/evidence-titles.ts)
+
+Each run also gives titles to existing reports whose GitHub links still have 
+an automatic name (such as "Pull request #3"), and signs them again. Nothing 
+else in them changes. 
+
+If a submission does not meet the rules, the run reports an error and the 
+submission waits, unsigned. Running the workflow again after more approvals 
+signs it. 
+
+**2. Saving the reports**
+
+The workflow commits the signed reports back to `main`. These files, and the 
+accepted submissions, are written only by the workflows. Never edit them by 
+hand. 
+
+| Path | Contents | Written by |
+| --- | --- | --- |
+| [`submissions/`](submissions/) | accepted submissions, one JSON file each | *Submission issue* (Part 2), or a merged pull request |
+| [`data/issue-submissions.json`](data/issue-submissions.json) | the issue each accepted submission came from | *Submission issue* |
+| [`public/credentials/`](public/credentials/) | the signed reports | *Sign and deploy* |
+| [`data/report-numbers.json`](data/report-numbers.json) | the permanent number of each report | *Sign and deploy* |
+| [`public/specimen.json`](public/specimen.json) | a sample report, signed from [`examples/specimen.submission.json`](examples/specimen.submission.json) | *Sign and deploy* |
+
+Reports are numbered in the order they are signed, and keep their number for 
+good. 
+
+**3. Deploying**
+
+Finally, the workflow builds the site and publishes it on GitHub Pages 
+(Part 5). The build also writes the files that let anyone check a report, 
+such as the DID document (`did.json`) and the list of reports. 
+- code for these files: [`scripts/build-static.ts`](scripts/build-static.ts)
+
+### Part 4: Display and verification 
+
+**The website**
+
+The website is a static React site. Its main pages are: 
+
+| Page | Shows | Code |
+| --- | --- | --- |
+| `/` | the introduction and the sections | [`src/pages/Home.tsx`](src/pages/Home.tsx) |
+| `/reports/<name>` | one report, with its citation and badge | [`src/pages/Report.tsx`](src/pages/Report.tsx) |
+| `/archive` | every report (test reports in a separate box) | [`src/pages/Archive.tsx`](src/pages/Archive.tsx) |
+| `/sections`, `/sections/<id>` | the sections and their criteria | [`src/pages/Sections.tsx`](src/pages/Sections.tsx) |
+| `/contributors/<github>` | one person's reports | [`src/pages/Contributor.tsx`](src/pages/Contributor.tsx) |
+| `/about` | the purpose, the process and the maintainers | [`src/pages/About.tsx`](src/pages/About.tsx) |
+| `/submit` | the submission form (Part 1) | [`src/pages/Submit.tsx`](src/pages/Submit.tsx) |
+| `/verify` | check a report (below) | [`src/pages/Verify.tsx`](src/pages/Verify.tsx) |
+| `/status` | the results of the setup check (Part 5) | [`src/pages/Status.tsx`](src/pages/Status.tsx) |
+
+Most of the text on the site is in [`content/`](content/), as Markdown, one 
+file each. Each file says where on the site it appears. Values such as the 
+site's name are filled in from [`config/`](config/) by `{placeholders}`. 
+[`content/README.md`](content/README.md) lists them. The diagram of the 
+process and the approval rules on the About page are generated from the code, 
+so they always match what it does. 
+
+**Verifying a report**
+
+Anyone can check that a report is genuine on the `/verify` page, by pasting 
+the report, a link to it, or its badge image. The check confirms that the 
+report: 
+- was signed by a key that is published in the DID document (Part 5); 
+- has not been changed since, not even by one character; 
+- is in date; 
+- has not been revoked (below). 
+
+The first three are the standard Open Badges 3.0 checks, so any other Open 
+Badges verifier can repeat them. A report can also be checked from the command 
+line with `npm run verify`. 
+- code for verification: [`src/lib/verify.ts`](src/lib/verify.ts), [`scripts/verify.ts`](scripts/verify.ts)
+
+**Revoking a report**
+
+A signed report is never edited. To withdraw one, add 
+`{ "id": "<credential id>", "reason": "…", "date": "YYYY-MM-DD" }` to 
+[`config/revocations.json`](config/revocations.json). The site then marks it 
+"Revoked", and verifiers reject it. 
+
+**Standards and testing**
+
+Reports are [Open Badges 3.0](https://www.imsglobal.org/spec/ob/v3p0/) 
+credentials (W3C Verifiable Credentials 2.0), signed with an Ed25519 key 
+using the `eddsa-rdfc-2022` cryptosuite. The JSON-LD contexts are kept in 
+[`src/lib/contexts/`](src/lib/contexts/), so signing and verifying never fetch 
+anything over the network. The tests in [`test/`](test/) check that: 
+- the signing reproduces the official W3C test vector byte for byte; 
+- signatures work in both directions with Digital Bazaar's reference 
+  implementation; 
+- reports pass 1EdTech's official Open Badges 3.0 JSON schema; 
+- verification rejects changed reports, unknown keys, the wrong issuer, 
+  revoked reports and reports that are not yet valid; 
+- the approval rules reject non-maintainers, conflicts of interest and 
+  withdrawn approvals; 
+- badge images with a report inside them round-trip. 
+
+Reports leave out the `credentialSchema` field: its type is not defined in 
+any JSON-LD context, so strict verifiers would reject them. 
+
+### Part 5: Hosting
+
+**Where the site lives**
+
+The code and every record live in this GitHub repository. The site is hosted 
+on GitHub Pages, at the `siteUrl` in [`config/site.json`](config/site.json) 
+(currently https://contributions.physlib.io). The same file holds the 
+repository, the issuer's name and description, the DNS name and the number 
+of approvals required. 
+
+**The keys**
+
+There are two secret keys. Both are stored only as secrets of the protected 
+`signing` environment in the GitHub settings, which only workflows on `main` 
+can use. 
+
+| Secret | What it does |
 | --- | --- |
-| 1. Tests and build | the unit tests and the site build (run in a first job without secrets) |
-| 2. Configuration | `config/` and `.github/CODEOWNERS`: site address, sections, maintainers and their GitHub ids, approval rules, beta label |
-| 3. Signing keys | `config/keys.json`; that `OB_SIGNING_KEY` is the private half of the active key and signs; the DNS record |
-| 4. GitHub settings | Pages; the `signing` environment is limited to `main`; the rules on `main`; `SIGNING_DEPLOY_KEY` can push (by `git push --dry-run`, which pushes nothing); the workflows; the last *Sign and deploy* run |
-| 5. Submissions and signed reports | every submission is valid; why any accepted submission is unsigned; every report verifies; report numbers; revocations; the specimen |
-| 6. Dry run of a submission | a made-up submission through the form's validation, the pull request summary, the approval rules, the credential (against the official OB 3.0 schema), signing with the real key, verification, tamper detection and badge baking |
-| 7. Live site | the published DID document; that the public key the site publishes and shows on `/verify` matches the private key in `OB_SIGNING_KEY`; the revocation list and list of reports; that the published reports verify online |
+| `OB_SIGNING_KEY` | signs the reports (Part 3) |
+| `SIGNING_DEPLOY_KEY` | lets the workflows commit accepted submissions and signed reports to `main`, which otherwise changes only through reviewed pull requests |
 
-Each check passes (✓), warns (!: works, but needs attention, usually before
-launch), fails (✗: something will not work until it is fixed) or is skipped
-(–: cannot be checked there). Every warning and failure says how to fix it.
-The workflow fails if any check fails.
+The public half of the signing key is listed in 
+[`config/keys.json`](config/keys.json), with its status (`active`, `retired` 
+or `revoked`). 
 
-The results are also published on the site's **status page**, `/status`
-(linked as "Site status" in the footer). The workflow saves them as the
-`setup-check-status` artifact; when it finishes, *Sign and deploy* runs and
-publishes the latest results with the site, so the page is up to date a few
-minutes after each check. Nothing secret is in them: the check never prints
-the keys.
+**Keys, DID and the physlib.io DNS**
 
-Locally, `npm run setup-check` runs the same checks except those that need
-the secrets (add `-- --key .keys/key-1.json` to include a local signing key,
-and `GITHUB_TOKEN=$(gh auth token)` in front to read the GitHub settings).
-
-## Keys, DID and the physlib.io DNS
-
-The issuer is identified as `did:web:<site host>[:<path>]`, derived from
-`siteUrl`. The site publishes the DID document at `/did.json` and
-`/.well-known/did.json`. It lists every key in `config/keys.json` except
-revoked ones, so reports signed with a retired key keep verifying.
-
-The key will also be tied to Physlib's DNS: the site looks up a TXT record at
-`_openbadges.physlib.io` over DNS-over-HTTPS and checks that it names the
-signing key. This is a convention of this site, not part of Open Badges.
+The public key is published in two places, so anyone can check a report 
+against it: 
+- the site's DID document, at `/did.json` and `/.well-known/did.json`. The 
+  issuer's identity, `did:web:<site host>`, comes from `siteUrl`. The 
+  document lists every key in `config/keys.json` except revoked ones, so 
+  reports signed with a retired key still verify. 
+- a DNS TXT record at `_openbadges.physlib.io`, which ties the key to 
+  Physlib independently of this website. This is a convention of this site, 
+  not part of Open Badges: 
 
 ```
 _openbadges.physlib.io.  TXT  "v=OB3; did=<issuer DID>; key=<publicKeyMultibase>"
 ```
 
-**Replacing the temporary key with the permanent one** (for example when
-moving to a physlib.io domain):
+**Replacing the signing key** (for example when moving to a new domain):
 
-1. If the domain changes, set `siteUrl`, and set `basePath` to `/`, and set
-   the custom domain in the Pages settings (a `public/CNAME` file is not
-   needed: Pages is deployed by a workflow). Point the domain at
-   `<owner>.github.io` with a CNAME record. The DID becomes `did:web:<new host>`.
-2. Run `npm run keygen -- --status active`. This marks `key-1` as retired and
-   prints the exact TXT record to add.
-3. Store the new `.keys/key-N.json` as `OB_SIGNING_KEY` in the `signing`
-   environment, then commit `config/keys.json`.
-4. Add the TXT record to the DNS zone.
-5. Run the **Sign and deploy** workflow manually with *Re-sign every report*
-   ticked. Each report is re-signed with its content unchanged; only the issuer
-   and the URLs under the old site address are updated.
+1. If the domain changes, set `siteUrl` (and `basePath` to `/`), set the 
+   custom domain in the Pages settings, and point the domain at 
+   `<owner>.github.io` with a CNAME record. The DID becomes 
+   `did:web:<new host>`. 
+2. Run `npm run keygen -- --status active`. This marks the current key as 
+   retired and prints the exact TXT record to add. 
+3. Store the new `.keys/key-N.json` as `OB_SIGNING_KEY` in the `signing` 
+   environment, then commit `config/keys.json`. 
+4. Replace the TXT record in the DNS zone with the new one. 
+5. Run the *Sign and deploy* workflow by hand with *Re-sign every report* 
+   ticked. Each report is signed again with its content unchanged; only the 
+   issuer and the links under the old address are updated. 
 
-**If a key is compromised**, set its status to `revoked` in `config/keys.json`
-(it disappears from the DID document, so nothing it signed verifies any more),
-generate a new key, and re-sign as above.
+**If a key is compromised**, set its status to `revoked` in 
+`config/keys.json` (it disappears from the DID document, so nothing it signed 
+verifies any more), generate a new key, and re-sign as above. 
 
-## Revoking a report
+**Setting up the repository**
 
-Add `{ "id": "<credential id>", "reason": "…", "date": "YYYY-MM-DD" }` to
-`config/revocations.json`. Verifiers on this site and `npm run verify` will
-then reject the credential, and it is marked "Revoked" in the list of reports.
-Published credential files are never edited.
+The site is live. These steps record how the repository is set up, so the 
+settings can be checked or repeated for a fresh copy: 
 
-## Standards and testing
+1. **Create the GitHub repository** given in `config/site.json` (currently 
+   `jstoobysmith/formal-contributions`) and push this code. If you use a 
+   different owner or name, also update `siteUrl` and `basePath`. 
+2. **Enable Pages:** Settings → Pages → Source: *GitHub Actions*. 
+3. **Create the `signing` environment** (Settings → Environments), restrict 
+   it to the `main` branch, and store the signing key there as 
+   `OB_SIGNING_KEY`: the secret half of the `active` key in 
+   `config/keys.json`. For a fresh copy, generate one with 
+   `npm run keygen -- --status active` and store it: 
+   ```bash
+   gh secret set OB_SIGNING_KEY --env signing --repo jstoobysmith/formal-contributions < .keys/key-N.json
+   rm .keys/key-N.json   # once the secret is stored
+   ```
+   Then add the DNS TXT record that `keygen` prints. 
+4. **Protect `main`** with a ruleset: require pull requests with review from 
+   code owners ([`.github/CODEOWNERS`](.github/CODEOWNERS) covers everything 
+   that runs with the key or is signed with it), dismiss stale approvals, and 
+   require approval of the most recent push. Add a write **deploy key**, 
+   store it as `SIGNING_DEPLOY_KEY` in the `signing` environment, and let 
+   deploy keys bypass the ruleset. (On a personal account, GitHub does not 
+   allow the GitHub Actions app itself to bypass it.) 
+5. **List the maintainers** in `config/maintainers.json`. 
+6. **Push to `main`.** The workflow signs the sample report and deploys the 
+   site. Without the signing key, accepted submissions stay unsigned 
+   ("awaiting signature") but the site still deploys. 
+7. **Run the setup check** (below) and fix anything it reports. 
 
-Credentials are [Open Badges 3.0](https://www.imsglobal.org/spec/ob/v3p0/)
-`OpenBadgeCredential`s (W3C VC Data Model 2.0). Each has an embedded
-`DataIntegrityProof` using the `eddsa-rdfc-2022` cryptosuite. JSON-LD contexts
-are vendored in `src/lib/contexts/`, so signing and verification never fetch
-them over the network. The test suite checks that:
+**Before launch**
 
-- the implementation reproduces the W3C `vc-di-eddsa` test vector byte for byte,
-- signatures interoperate in both directions with Digital Bazaar's reference
-  implementation (`@digitalbazaar/eddsa-rdfc-2022-cryptosuite`),
-- generated credentials validate against 1EdTech's official OB 3.0
-  AchievementCredential JSON schema,
-- verification rejects tampering, unknown keys, issuer mismatches,
-  untrusted issuers, revoked reports and credentials that are not yet valid,
-- the approval rules reject non-maintainers, conflicts of interest and
-  withdrawn approvals,
-- baked SVG badges round-trip.
+- List at least two maintainers in `config/maintainers.json`, so the conflict 
+  rules can always be followed, and confirm the appointment text in 
+  `config/site.json` (`review.appointment`). 
+- Make the repository public. 
 
-Credentials leave out `credentialSchema`. Its `1EdTechJsonSchemaValidator2019`
-type is not defined in any JSON-LD context, so strict verifiers reject
-credentials that include it.
+**Checking the set-up**
+
+The *Setup check* workflow tests everything the site depends on, without 
+changing, signing or publishing anything. Run it by hand from the Actions tab 
+after changing settings, keys or maintainers. 
+- workflow: [`.github/workflows/setup-check.yml`](.github/workflows/setup-check.yml)
+- code for the checks: [`scripts/setup-check/`](scripts/setup-check/), one file per part (check 4.2 is the second check in `4-github-settings.ts`)
+
+| Part | Checks |
+| --- | --- |
+| 1. Tests and build | the unit tests and the site build |
+| 2. Configuration | `config/` and `CODEOWNERS`: site address, sections, maintainers, approval rules, beta label, page text |
+| 3. Signing keys | `config/keys.json`; that `OB_SIGNING_KEY` matches the active key and signs; the DNS record |
+| 4. GitHub settings | Pages; the `signing` environment; the rules on `main`; that `SIGNING_DEPLOY_KEY` can push (without pushing anything); the workflows; the last *Sign and deploy* run |
+| 5. Submissions and signed reports | every submission is valid; why any accepted submission is unsigned; every report verifies; report numbers; revocations; the sample report |
+| 6. Dry run of a submission | a made-up submission through every step: the form's checks, the summary, the approval rules, signing with the real key, verification, and spotting a changed report |
+| 7. Live site | the published DID document matches the signing key; the published reports verify online |
+
+Each check passes (✓), warns (!), fails (✗) or is skipped (–), and every 
+warning and failure says how to fix it. The results are on the run's summary 
+page, and are also published on the site's `/status` page a few minutes 
+later. Nothing secret is ever shown. 
+
+## Working on the code
+
+```bash
+npm install
+npm run dev          # local site at http://localhost:5173/
+npm test             # unit tests
+npm run build        # static site in dist/
+
+npm run validate                                          # check every submission
+npm run sign -- --key .keys/key-N.json --no-review-check  # sign locally, for testing only
+npm run verify -- public/specimen.json --local            # check any report (file or URL)
+npm run keygen                                            # new signing key (Part 5)
+npm run setup-check                                       # the setup check, without the secrets
+npm run setup-check -- --json public/data/status.json     # also preview the results on /status
+python3 scripts/draw-badges.py                            # redraw the section badges
+```
+
+Locally, the setup check skips the checks that need the secrets. Add 
+`-- --key .keys/key-N.json` to include a local signing key, and 
+`GITHUB_TOKEN=$(gh auth token)` in front to read the GitHub settings. 
+
+| Path | Contents |
+| --- | --- |
+| [`config/`](config/) | the settings (edited by hand, except `keys.json`) |
+| [`content/`](content/) | the text on the site |
+| [`src/lib/`](src/lib/) | code shared by the site and the scripts: settings, submission format, reports, signing, verification, approval rules |
+| [`src/site/`](src/site/) | code that only runs in the browser: loading data, talking to GitHub, the draft |
+| [`src/pages/`](src/pages/), [`src/components/`](src/components/) | the website |
+| [`scripts/`](scripts/) | signing, checking, verifying, making keys, building the generated files |
+| [`test/`](test/) | the tests, one file per module in `src/lib/` |
+
+The design follows [myopenbadge](https://github.com/saiyam1814/myopenbadge): a 
+static site, with GitHub as the only source of truth. Unlike myopenbadge, 
+users submit their own work from their own GitHub account, and reports are 
+signed, not merely hosted. 
