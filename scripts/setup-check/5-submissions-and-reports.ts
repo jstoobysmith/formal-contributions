@@ -80,7 +80,7 @@ export default definePart({
         if (!r.valid && !revoked.includes(credential.id)) bad.push(`${slug} (${failedChecks(r)})`);
       }
       return bad.length
-        ? fail(`${listing(bad)} do${bad.length === 1 ? 'es' : ''} not verify.`, 'A signed file was edited, or its key was revoked. Restore it from git history, or re-sign (README: Keys, DID and the physlib.io DNS).')
+        ? fail(`${listing(bad)} do${bad.length === 1 ? 'es' : ''} not verify.`, 'A signed file was edited, or its key was revoked. Restore it from git history, or re-sign (README: Keys, DID and DNS).')
         : pass(`All ${plural(credentials.length, 'signed report')} verify against config/keys.json.`);
     });
 

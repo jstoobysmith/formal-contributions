@@ -9,7 +9,7 @@ import { checkDnsAnchor, dnsRecordFor } from '../../src/lib/verify';
 import { definePart, fail, listing, pass, warn } from './checks';
 import { IN_ACTIONS, SECRETS, secretNotHere } from './context';
 
-const KEYGEN_FIX = 'README: Keys, DID and the physlib.io DNS';
+const KEYGEN_FIX = 'README: Keys, DID and DNS';
 
 export default definePart({
   number: 3,

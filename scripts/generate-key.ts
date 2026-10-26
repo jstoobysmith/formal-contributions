@@ -1,8 +1,8 @@
 /**
- * Generates a new Ed25519 signing key for Physlib Contributions.
+ * Generates a new Ed25519 signing key for the site.
  *
  *   npm run keygen                      # temporary key (default)
- *   npm run keygen -- --status active   # the long-term key, once the physlib.io DNS is ready
+ *   npm run keygen -- --status active   # the long-term key, once the DNS record can be added
  *
  * The public key is added to config/keys.json (and from there to the DID
  * document); earlier keys are marked "retired" so reports they signed still

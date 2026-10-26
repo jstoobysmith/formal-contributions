@@ -3,7 +3,7 @@
   "reportSeries": "Physlib Contribution Report",
   "subtitle": "Signed reports on reviewing, maintenance, refactoring, foundations, formalisation and documentation of Physlib",
   "beta": true,
-  "siteUrl": "https://contributions.physlib.io",
+  "siteUrl": "https://formalcontributions.com",
   "basePath": "/",
   "repository": {
     "owner": "jstoobysmith",
@@ -23,7 +23,7 @@
     "image": "images/physlib-logo.png"
   },
   "dns": {
-    "txtName": "_openbadges.physlib.io",
+    "txtName": "_openbadges.formalcontributions.com",
     "dohResolver": "https://cloudflare-dns.com/dns-query"
   },
   "review": {

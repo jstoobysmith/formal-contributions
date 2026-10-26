@@ -99,7 +99,7 @@ that is ready to check and send from their own account. Make one with *Copy a
 link to this form* on the form, or by hand: 
 
 ```
-https://contributions.physlib.io/submit?section=review&name=Ada%20Example&github=ada&title=Reviewed%2010%20pull%20requests%20on%20quantum%20mechanics&prs=1749,1747,1744
+https://formalcontributions.com/submit?section=review&name=Ada%20Example&github=ada&title=Reviewed%2010%20pull%20requests%20on%20quantum%20mechanics&prs=1749,1747,1744
 ```
 
 | Parameter | Fills in |
@@ -320,7 +320,7 @@ any JSON-LD context, so strict verifiers would reject them.
 
 The code and every record live in this GitHub repository. The site is hosted 
 on GitHub Pages, at the `siteUrl` in [`config/site.json`](config/site.json) 
-(currently https://contributions.physlib.io). The same file holds the 
+(currently https://formalcontributions.com). The same file holds the 
 repository, the issuer's name and description, the DNS name and the number 
 of approvals required. 
 
@@ -339,7 +339,7 @@ The public half of the signing key is listed in
 [`config/keys.json`](config/keys.json), with its status (`active`, `retired` 
 or `revoked`). 
 
-**Keys, DID and the physlib.io DNS**
+**Keys, DID and DNS**
 
 The public key is published in two places, so anyone can check a report 
 against it: 
@@ -347,12 +347,12 @@ against it:
   issuer's identity, `did:web:<site host>`, comes from `siteUrl`. The 
   document lists every key in `config/keys.json` except revoked ones, so 
   reports signed with a retired key still verify. 
-- a DNS TXT record at `_openbadges.physlib.io`, which ties the key to 
-  Physlib independently of this website. This is a convention of this site, 
-  not part of Open Badges: 
+- a DNS TXT record at `_openbadges.formalcontributions.com`, which ties the 
+  key to the domain independently of where the site is hosted. This is a 
+  convention of this site, not part of Open Badges: 
 
 ```
-_openbadges.physlib.io.  TXT  "v=OB3; did=<issuer DID>; key=<publicKeyMultibase>"
+_openbadges.formalcontributions.com.  TXT  "v=OB3; did=<issuer DID>; key=<publicKeyMultibase>"
 ```
 
 **Replacing the signing key** (for example when moving to a new domain):

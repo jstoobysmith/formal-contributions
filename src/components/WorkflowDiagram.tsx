@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ISSUER_DID, SIGNING_KEY, SITE } from '../lib/config';
+import { DNS_DOMAIN, ISSUER_DID, SIGNING_KEY, SITE } from '../lib/config';
 import { ACCEPT_COMMAND } from '../lib/issue-submission';
 import { asset } from '../site/data';
 
@@ -110,7 +110,7 @@ function stages(): Stage[] {
           <>
             Listed in the repository ({code('config/keys.json')}), published here in the issuer’s{' '}
             <a href={asset('did.json')}>DID document</a> ({code(ISSUER_DID)}) and shown on the <Link to="/verify#key">verify page</Link>
-            . {temporary ? 'The permanent key will' : 'It is'} also {temporary ? 'be ' : ''}published in the DNS of physlib.io, at{' '}
+            . {temporary ? 'The permanent key will' : 'It is'} also {temporary ? 'be ' : ''}published in the DNS of {DNS_DOMAIN}, at{' '}
             {code(SITE.dns.txtName)}.
           </>
         ),

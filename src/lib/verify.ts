@@ -182,7 +182,7 @@ export function dnsRecordFor(did: string, publicKeyMultibase: string): string {
 
 /**
  * Looks up the issuer's TXT record over DNS-over-HTTPS, so that anyone can
- * check that whoever controls physlib.io vouches for the signing key.
+ * check that whoever controls the domain vouches for the signing key.
  */
 export async function checkDnsAnchor(publicKeyMultibase: string, name = SITE.dns.txtName): Promise<DnsStatus> {
   try {
