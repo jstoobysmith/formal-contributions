@@ -15,5 +15,29 @@
         "id": 72603918
       }
     ]
+  }, 
+  { 
+    "id": "formal-conjectures",
+    "name" : "Formal Conjectures",
+    "description": "A collection of formalized statements of conjectures in Lean.", 
+    "url": "https://google-deepmind.github.io/formal-conjectures/", 
+    "repository": "google-deepmind/formal-conjectures", 
+    "zulip": "https://leanprover.zulipchat.com/#narrow/channel/524981-Formal-conjectures", 
+    "verifiers": [ 
+      {
+        "github": "Paul-Lez", 
+        "name": "Paul Lezeau", 
+        "affiliation": ["London School of Geometry and Number Theory, UK", "Imperial College London, UK"],
+        "role": "Maintainer of Formal Conjectures", 
+        "id": 72892199
+      }, 
+      {
+        "github": "mo271", 
+        "name" : "Moritz Firsching", 
+        "affiliation": "Google DeepMind", 
+        "role":  "Maintainer of Formal Conjectures", 
+        "id": 3491627
+      }
+    ]
   }
 ]

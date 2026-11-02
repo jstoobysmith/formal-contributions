@@ -51,9 +51,12 @@ accept the submission (Part 2). The different projects are listed in:
 For each project, this file gives its name, a one-sentence description, its 
 website, its GitHub repository and, optionally, its Zulip channel. It also 
 lists the project's verifiers: the people who can review and accept reports 
-for that project (Part 2). There is currently one project, Physlib 
-(`leanprover-community/physlib`). While there is only one, the form chooses 
-it automatically. 
+for that project (Part 2). There are currently two projects: 
+
+| Project | Repository |
+| --- | --- |
+| Physlib | `leanprover-community/physlib` |
+| Formal Conjectures | `google-deepmind/formal-conjectures` |
 
 To add a project, add an entry to `config/projects.json`. Its `id` is what 
 submissions and links use, so it should not change later. 
@@ -156,7 +159,7 @@ verifier of a secondary project is not enough. A project with no verifiers
 cannot accept submissions until one is added. 
 
 Each verifier is listed with their GitHub username, name, and optionally 
-their role, affiliation and numeric GitHub `id` (which stops anyone else 
+their role, affiliation (or a list of several) and numeric GitHub `id` (which stops anyone else 
 from taking over a renamed account). The About page lists the verifiers of 
 each project. 
 

@@ -69,7 +69,8 @@ export interface Verifier {
   /** Numeric GitHub user id. When given, approvals must come from this account even if its login changes hands. */
   id?: number;
   name: string;
-  affiliation?: string;
+  /** One affiliation, or several as a list. */
+  affiliation?: string | string[];
   role?: string;
 }
 
@@ -127,6 +128,9 @@ export function sectionById(id: string): Section | undefined {
 
 /** Whether a section id is the test section's. */
 export const isTestSection = (id: string) => !!sectionById(id)?.test;
+
+/** A verifier's affiliations, as a list (the file may give one, or several). */
+export const affiliationsOf = (v: Pick<Verifier, 'affiliation'>): string[] => [v.affiliation ?? []].flat().filter(Boolean);
 
 /** A verifier of any project, by GitHub login (for showing names). */
 export function verifierByLogin(login: string): Verifier | undefined {
