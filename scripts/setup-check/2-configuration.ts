@@ -72,6 +72,10 @@ export default definePart({
         if (!p.name || !p.description || !p.url || !/^[\w.-]+\/[\w.-]+$/.test(p.repository ?? '')) problems.push(`${p.id} needs a name, description, url and repository ("owner/name")`);
         // An id in quotes is text, and never matches the number GitHub gives, so that verifier's approvals would not count.
         for (const v of p.verifiers ?? []) if (v.id !== undefined && typeof v.id !== 'number') problems.push(`@${v.github}'s id must be a number, without quotes`);
+        for (const v of p.verifiers ?? []) {
+          const a = v.affiliation;
+          if (a !== undefined && typeof a !== 'string' && !(Array.isArray(a) && a.every((x) => typeof x === 'string'))) problems.push(`@${v.github}'s affiliation must be text, or a list of text`);
+        }
       }
       if (SITE.defaultProject !== DEFAULT_PROJECT.id) problems.push(`defaultProject in config/site.json is "${SITE.defaultProject}", which is not a project`);
       if (problems.length) return fail(`${problems.join('; ')}.`, 'Fix config/projects.json (README: Part 1, Project).');

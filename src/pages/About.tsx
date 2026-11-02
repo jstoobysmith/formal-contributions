@@ -3,7 +3,7 @@ import { ACCEPT_COMMAND } from '../lib/issue-submission';
 import { Content } from '../components/Content';
 import { Container, PageTitle } from '../components/ui';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
-import { DNS_DOMAIN, ISSUER_DID, PROJECTS, SECTIONS, SIGNING_KEY, SITE, SITE_URL, urls } from '../lib/config';
+import { affiliationsOf, DNS_DOMAIN, ISSUER_DID, PROJECTS, SECTIONS, SIGNING_KEY, SITE, SITE_URL, urls } from '../lib/config';
 import { PREFILL_PARAMETERS, prefillParams } from '../lib/prefill';
 import { asset } from '../site/data';
 import { useTitle } from '../site/useTitle';
@@ -61,7 +61,8 @@ export default function About() {
                   {p.verifiers.map((m) => (
                     <li key={m.github}>
                       <a href={urls.github(m.github)}>{m.name}</a>
-                      {m.role || m.affiliation ? ` (${[m.role, m.affiliation].filter(Boolean).join(', ')})` : ''}
+                      {/* Affiliations are separated by semicolons, as each may contain commas ("…, UK"). */}
+                      {m.role || affiliationsOf(m).length ? ` (${[m.role, affiliationsOf(m).join('; ')].filter(Boolean).join(', ')})` : ''}
                     </li>
                   ))}
                 </ul>

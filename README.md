@@ -159,7 +159,7 @@ verifier of a secondary project is not enough. A project with no verifiers
 cannot accept submissions until one is added. 
 
 Each verifier is listed with their GitHub username, name, and optionally 
-their role, affiliation and numeric GitHub `id` (which stops anyone else 
+their role, affiliation (or a list of several) and numeric GitHub `id` (which stops anyone else 
 from taking over a renamed account). The About page lists the verifiers of 
 each project. 
 
