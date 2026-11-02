@@ -27,7 +27,7 @@
       {
         "github": "Paul-Lez", 
         "name": "Paul Lezeau", 
-        "affiliation": "London School of Geometry and Number Theory, UK",
+        "affiliation": ["London School of Geometry and Number Theory, UK", "Imperial College London, UK"],
         "role": "Maintainer of Formal Conjectures", 
         "id": 72892199
       }, 
