@@ -496,7 +496,7 @@ npm run verify -- public/specimen.json --local            # check any report (fi
 npm run keygen                                            # new signing key (Part 5)
 npm run setup-check                                       # the setup check, without the secrets
 npm run setup-check -- --json public/data/status.json     # also preview the results on /status
-python3 scripts/draw-badges.py                            # redraw the section badges
+python3 scripts/draw-badges.py                            # redraw the section badges (after draw-logo.py)
 ```
 
 Locally, the setup check skips the checks that need the secrets. Add 
