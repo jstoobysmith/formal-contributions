@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Draw the Formal Contributions logo set into ./Logo.
+"""Draw the Formal Contributions logo set into public/logo (served at /logo/).
+
+Also replaces public/favicon.ico. Which file the site uses where is set by
+"logo" and "issuer.image" in config/site.json.
 
 The wordmark is set in STIX Two Text (the site's serif) and converted to
 outlines, so the SVGs render the same everywhere without a web font.
@@ -23,7 +26,7 @@ from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "Logo"
+OUT = ROOT / "public" / "logo"
 DEFAULT_FONT = "/System/Library/Fonts/Supplemental/STIXTwoText.ttf"
 
 NAVY = "#16223C"
@@ -109,10 +112,12 @@ def ico(pngs: list[tuple[int, bytes]]) -> bytes:
     return header + entries + data
 
 
-def rasterise(src: Path, size: int) -> bytes:
+def rasterise(src: Path | str, width: int, height: int | None = None) -> bytes:
+    """Render an SVG file, or SVG text, to PNG bytes."""
+    text = src if isinstance(src, str) else None
     return subprocess.run(
-        ["rsvg-convert", "-w", str(size), "-h", str(size), str(src)],
-        check=True, capture_output=True,
+        ["rsvg-convert", "-w", str(width), "-h", str(height or width)] + ([] if text else [str(src)]),
+        input=text.encode() if text else None, check=True, capture_output=True,
     ).stdout
 
 
@@ -163,11 +168,22 @@ def main() -> None:
     for size in (180, 192, 512):
         (OUT / "png" / f"icon-{size}.png").write_bytes(rasterise(OUT / "icon.svg", size))
     (OUT / "png" / "mark-512.png").write_bytes(rasterise(OUT / "mark.svg", 512))
-    (OUT / "favicon.ico").write_bytes(
-        ico([(s, (OUT / "png" / f"favicon-{s}.png").read_bytes()) for s in (16, 32, 48)])
-    )
+    favicon_ico = ico([(s, (OUT / "png" / f"favicon-{s}.png").read_bytes()) for s in (16, 32, 48)])
+    (OUT / "favicon.ico").write_bytes(favicon_ico)
+    (ROOT / "public" / "favicon.ico").write_bytes(favicon_ico)
 
-    print(f"Wrote logo set to {OUT.relative_to(ROOT)}/")
+    # Link-preview image (og:image): the lockup centred on cream, 1200 x 630.
+    scale = 220 / 84
+    x, y = (1200 - lockup_w * scale) / 2, (630 - 84 * scale) / 2
+    social = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">'
+        f'<rect width="1200" height="630" fill="{CREAM}"/>'
+        f'<g transform="translate({x:.1f} {y:.1f}) scale({scale:.4f})">'
+        f'{mark(REGULAR, NAVY)}<path fill="{NAVY}" d="{line1}{line2}"/></g></svg>'
+    )
+    (OUT / "png" / "social.png").write_bytes(rasterise(social, 1200, 630))
+
+    print(f"Wrote logo set to {OUT.relative_to(ROOT)}/ and public/favicon.ico")
 
 
 if __name__ == "__main__":

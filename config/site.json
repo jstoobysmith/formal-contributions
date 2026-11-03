@@ -11,11 +11,18 @@
     "branch": "main"
   },
   "defaultProject": "physlib",
+  "logo": {
+    "header": "logo/mark-inverse.svg",
+    "favicon": "logo/favicon.svg",
+    "faviconIco": "logo/favicon.ico",
+    "appleTouchIcon": "logo/png/icon-180.png",
+    "socialImage": "logo/png/social.png"
+  },
   "issuer": {
     "name": "Formal Contributions",
     "description": "Formal Contributions publishes signed reports on reviewing, maintenance, refactoring, foundations, formalisation and documentation of formalization projects.",
     "url": "https://formalcontributions.com",
-    "image": "images/physlib-logo.png"
+    "image": "logo/png/icon-512.png"
   },
   "dns": {
     "txtName": "_openbadges.formalcontributions.com",

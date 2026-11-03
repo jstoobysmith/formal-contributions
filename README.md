@@ -350,6 +350,26 @@ on GitHub Pages, at the `siteUrl` in [`config/site.json`](config/site.json)
 repository, the issuer's name and description, the DNS name and the number 
 of approvals required. 
 
+**The logo**
+
+The logo files are in [`public/logo/`](public/logo/), drawn by 
+[`scripts/draw-logo.py`](scripts/draw-logo.py) (run 
+`python3 scripts/draw-logo.py` after changing it). `logo` in 
+`config/site.json` names the files used for the site header, the favicon, 
+the home-screen icon and link previews. `issuer.image` names the image that 
+newly signed reports give for the issuer. Reports signed earlier still point 
+at `public/images/physlib-logo.png`, so keep that file. 
+
+| File | Use |
+| --- | --- |
+| `logo.svg`, `logo-inverse.svg` | Symbol and name, for light and dark backgrounds |
+| `mark.svg`, `mark-inverse.svg` | The symbol alone, for light and dark backgrounds |
+| `favicon.svg`, `favicon.ico` | Browser tab icon, with heavier lines for small sizes |
+| `icon.svg`, `png/icon-*.png` | The symbol on a cream square: home-screen and issuer icon |
+| `png/social.png` | Link-preview image, 1200 × 630 |
+
+Colours: navy `#16223C`, gold `#A78439`, cream `#F7F6F2`. 
+
 **The keys**
 
 There are two secret keys. Both are stored only as secrets of the protected 
