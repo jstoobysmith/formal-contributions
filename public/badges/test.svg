@@ -4,17 +4,16 @@
     <path id="top" d="M 62,200 A 138,138 0 0 1 338,200"/>
     <path id="bottom" d="M 52,200 A 148,148 0 0 0 348,200"/>
   </defs>
-  <circle cx="200" cy="200" r="194" fill="#ffffff" stroke="#01010d" stroke-width="4"/>
-  <circle cx="200" cy="200" r="176" fill="none" stroke="#007bac" stroke-width="1.5"/>
-  <circle cx="200" cy="200" r="118" fill="none" stroke="#01010d" stroke-opacity="0.12" stroke-width="1.5"/>
-  <text font-family="Menlo, Consolas, 'Courier New', monospace" font-size="17" font-weight="600" letter-spacing="4" fill="#01010d" text-anchor="middle">
-    <textPath href="#top" startOffset="50%">PHYSLIB · CONTRIBUTIONS</textPath>
+  <circle cx="200" cy="200" r="194" fill="#F7F6F2" stroke="#16223C" stroke-width="4"/>
+  <circle cx="200" cy="200" r="176" fill="none" stroke="#A78439" stroke-width="1.5"/>
+  <text font-family="Menlo, Consolas, 'Courier New', monospace" font-size="17" font-weight="600" letter-spacing="4" fill="#16223C" text-anchor="middle">
+    <textPath href="#top" startOffset="50%">FORMAL · CONTRIBUTIONS</textPath>
   </text>
-  <text font-family="Menlo, Consolas, 'Courier New', monospace" font-size="15" font-weight="500" letter-spacing="3" fill="#007bac" text-anchor="middle">
+  <text font-family="Menlo, Consolas, 'Courier New', monospace" font-size="15" font-weight="500" letter-spacing="3" fill="#86672A" text-anchor="middle">
     <textPath href="#bottom" startOffset="50%">TEST · NOT A REAL REPORT</textPath>
   </text>
-  <text x="200" y="128" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-style="italic" fill="#01010d" text-anchor="middle">T</text>
-  <g><line x1="110" y1="205" x2="290" y2="205" stroke="#01010d" stroke-width="4" stroke-linecap="round"/><path d="M211.0,205.0 L189.0,196.2 L189.0,213.8 Z" fill="#01010d"/></g>
-  <circle cx="44" cy="200" r="3.5" fill="#01010d"/>
-  <circle cx="356" cy="200" r="3.5" fill="#01010d"/>
+  <g transform="translate(132.8 114.8) scale(1.6)"><g fill="none" stroke="#16223C" stroke-width="4.0"><line x1="30.35" y1="3.73" x2="30.35" y2="80.27"/><line x1="30.35" y1="42.0" x2="82.0" y2="42.0"/></g><circle stroke="#16223C" cx="42.0" cy="42.0" r="40.0" fill="none" stroke-width="4.0"/><circle stroke="#16223C" cx="57.7" cy="42.0" r="9.4" fill="#A78439" stroke-width="2.6"/></g>
+  <text x="200" y="300" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-style="italic" fill="#16223C" text-anchor="middle">T</text>
+  <circle cx="44" cy="200" r="3.5" fill="#16223C"/>
+  <circle cx="356" cy="200" r="3.5" fill="#16223C"/>
 </svg>

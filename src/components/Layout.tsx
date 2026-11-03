@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PROJECTS, SECTIONS, SITE, urls } from '../lib/config';
+import { asset } from '../site/data';
 import { Content } from './Content';
 import { Container } from './ui';
 
@@ -52,12 +53,15 @@ function Header() {
       </div>
       <div className="bg-band text-white">
         <Container className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 py-3">
-          <Link to="/" className="text-white hover:no-underline">
-            <span className="block font-serif text-[1.75rem] leading-none">
-              {SITE.title}
-              <BetaTag />
+          <Link to="/" className="flex items-center gap-3 text-white hover:no-underline">
+            <img src={asset(SITE.logo.header)} alt="" className="h-12 w-12 shrink-0" />
+            <span>
+              <span className="block font-serif text-[1.75rem] leading-none">
+                {SITE.title}
+                <BetaTag />
+              </span>
+              <span className="mt-1 block text-xs text-white/80">{SECTIONS.map((s) => s.name).join(' · ')}</span>
             </span>
-            <span className="mt-1 block text-xs text-white/80">{SECTIONS.map((s) => s.name).join(' · ')}</span>
           </Link>
           <SearchBox />
         </Container>
